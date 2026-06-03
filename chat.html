@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Chat — Italia 2026</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  .chat-layout { display: grid; grid-template-columns: 1fr 240px; gap: 24px; align-items: start; }
+  .chat-main { display: flex; flex-direction: column; }
+
+  .chat-box { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+  .chat-messages { padding: 20px; display: flex; flex-direction: column; gap: 14px; min-height: 420px; max-height: 560px; overflow-y: auto; }
+  .msg { display: flex; flex-direction: column; max-width: 80%; }
+  .msg.mine { align-self: flex-end; align-items: flex-end; }
+  .msg.theirs { align-self: flex-start; align-items: flex-start; }
+  .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 14px; font-weight: 300; line-height: 1.5; }
+  .msg.mine .msg-bubble { background: var(--terracotta); color: white; border-bottom-right-radius: 4px; }
+  .msg.theirs .msg-bubble { background: var(--sand); color: var(--dark); border-bottom-left-radius: 4px; }
+  .msg-meta { font-size: 10px; color: var(--stone); letter-spacing: 0.5px; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+  .msg-author { font-weight: 400; }
+
+  .reactions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .reaction { font-size: 14px; background: rgba(158,142,120,0.1); border: 1px solid rgba(158,142,120,0.2); border-radius: 12px; padding: 2px 8px; cursor: pointer; transition: all 0.15s; }
+  .reaction:hover { background: rgba(196,103,58,0.1); border-color: var(--terracotta); }
+  .reaction.reacted { background: rgba(196,103,58,0.15); border-color: var(--terracotta); }
+
+  .add-reaction-btn { font-size: 12px; color: var(--stone); background: none; border: 1px dashed rgba(158,142,120,0.3); border-radius: 12px; padding: 2px 8px; cursor: pointer; }
+  .add-reaction-btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
+
+  .chat-input-area { padding: 14px 16px; border-top: 1px solid rgba(158,142,120,0.12); display: flex; gap: 10px; align-items: flex-end; }
+  .chat-input-area textarea { flex: 1; min-height: 44px; max-height: 120px; border-radius: 10px; resize: none; padding: 10px 14px; }
+  .send-btn { background: var(--terracotta); color: white; border: none; border-radius: 10px; padding: 12px 18px; cursor: pointer; font-size: 16px; transition: background 0.2s; flex-shrink: 0; }
+  .send-btn:hover { background: #b05a30; }
+
+  /* Name selector */
+  .name-bar { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .name-label { font-size: 11px; letter-spacing: 1px; color: var(--stone); text-transform: uppercase; flex-shrink: 0; }
+  .name-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .name-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(158,142,120,0.3); background: transparent; font-family: 'Jost',sans-serif; font-size: 12px; cursor: pointer; color: var(--stone); transition: all 0.15s; }
+  .name-btn.active { background: var(--terracotta); border-color: var(--terracotta); color: white; }
+
+  /* Sidebar */
+  .chat-sidebar { display: flex; flex-direction: column; gap: 16px; }
+  .sidebar-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .sidebar-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; margin-bottom: 12px; }
+  .who-online { display: flex; flex-direction: column; gap: 8px; }
+  .online-person { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 300; }
+  .online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--stone); flex-shrink: 0; }
+  .online-dot.active { background: var(--olive); }
+  .emoji-quick { display: flex; gap: 6px; flex-wrap: wrap; }
+  .eq-btn { font-size: 20px; cursor: pointer; padding: 2px; border-radius: 4px; transition: transform 0.15s; }
+  .eq-btn:hover { transform: scale(1.2); }
+  .msg-count { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: var(--terracotta); }
+
+  @media (max-width: 768px) { .chat-layout { grid-template-columns: 1fr; } .chat-sidebar { display: none; } }
+</style>
+</head>
+<body>
+<nav class="portal-nav">
+  <a class="nav-home" href="index.html">Italia ✦</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="planner.html">Itinerary</a>
+    <a class="nav-link" href="packing.html">Packing</a>
+    <a class="nav-link" href="budget.html">Budget</a>
+    <a class="nav-link" href="ideas.html">Ideas</a>
+    <a class="nav-link" href="memories.html">Memories</a>
+    <a class="nav-link active" href="chat.html">Chat</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-eyebrow">Italia 2026</div>
+    <div class="page-title">Family <em>Chat</em></div>
+    <div class="page-subtitle">Questions · reactions · excitement · live for everyone</div>
+  </div>
+</div>
+
+<div class="page-content">
+  <!-- Who are you -->
+  <div class="name-bar">
+    <div class="name-label">You are:</div>
+    <div class="name-btns" id="name-btns">
+      <button class="name-btn" onclick="setName('Mum',this)">Mum</button>
+      <button class="name-btn" onclick="setName('Dad',this)">Dad</button>
+      <button class="name-btn" onclick="setName('Everyone',this)">Everyone</button>
+      <button class="name-btn" onclick="setCustomName()">Other…</button>
+    </div>
+  </div>
+
+  <div class="chat-layout">
+    <div class="chat-main">
+      <div class="chat-box">
+        <div class="chat-messages" id="chat-messages">
+          <div class="loading"><div class="spinner"></div> Loading chat…</div>
+        </div>
+        <div class="chat-input-area">
+          <textarea id="chat-input" placeholder="Type a message… (Enter to send)" rows="1" onkeydown="handleKey(event)"></textarea>
+          <button class="send-btn" onclick="sendMessage()">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">Quick reactions</div>
+        <div class="emoji-quick">
+          🎉 😍 🤌 🍕 🙌 😂 🏛️ 🍷 ✅ ❤️ 🤩 👌
+        </div>
+        <div style="font-size:11px;color:var(--stone);margin-top:10px">Click to react to the latest message</div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-title">Stats</div>
+        <div class="msg-count" id="msg-count">0</div>
+        <div style="font-size:11px;color:var(--stone);letter-spacing:1px;text-transform:uppercase">Messages</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
+
+<script>
+const db = getSupabase();
+let messages = [];
+let myName = localStorage.getItem('chat_name') || '';
+let myReactions = JSON.parse(localStorage.getItem('chat_reactions') || '{}');
+
+// Set up quick emoji buttons
+document.addEventListener('DOMContentLoaded', () => {
+  const qe = document.querySelector('.emoji-quick');
+  qe.innerHTML = ['🎉','😍','🤌','🍕','🙌','😂','🏛️','🍷','✅','❤️','🤩','👌']
+    .map(e => `<span class="eq-btn" onclick="reactLatest('${e}')">${e}</span>`).join('');
+
+  // Restore name
+  if (myName) {
+    document.querySelectorAll('.name-btn').forEach(b => {
+      if (b.textContent === myName) b.classList.add('active');
+    });
+  }
+});
+
+function setName(name, btn) {
+  myName = name; localStorage.setItem('chat_name', name);
+  document.querySelectorAll('.name-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  showToast(`Chatting as ${name}`);
+}
+
+function setCustomName() {
+  const n = prompt('Enter your name:');
+  if (n && n.trim()) {
+    myName = n.trim(); localStorage.setItem('chat_name', myName);
+    document.querySelectorAll('.name-btn').forEach(b => b.classList.remove('active'));
+    showToast(`Chatting as ${myName}`);
+  }
+}
+
+async function load() {
+  try {
+    const { data, error } = await db.from('chat_messages').select('*').order('created_at');
+    if (error) throw error;
+    messages = data;
+  } catch {
+    messages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
+  }
+  render();
+  scrollBottom();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!myName) { showToast('Pick your name first!'); return; }
+  const msg = {
+    id: crypto.randomUUID(),
+    text, author: myName, reactions: {},
+    created_at: new Date().toISOString(),
+  };
+  messages.push(msg);
+  input.value = '';
+  input.style.height = '';
+  try { await db.from('chat_messages').insert(msg); } catch { localStorage.setItem('chat_messages', JSON.stringify(messages)); }
+  render(); scrollBottom();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function addReaction(msgId, emoji) {
+  const msg = messages.find(m => m.id === msgId);
+  if (!msg) return;
+  const key = msgId + emoji;
+  const reacted = myReactions[key];
+  if (!msg.reactions) msg.reactions = {};
+  if (reacted) { msg.reactions[emoji] = Math.max(0,(msg.reactions[emoji]||1)-1); delete myReactions[key]; }
+  else          { msg.reactions[emoji] = (msg.reactions[emoji]||0)+1; myReactions[key] = true; }
+  localStorage.setItem('chat_reactions', JSON.stringify(myReactions));
+  try { await db.from('chat_messages').update({ reactions: msg.reactions }).eq('id', msgId); }
+  catch { localStorage.setItem('chat_messages', JSON.stringify(messages)); }
+  render();
+}
+
+function reactLatest(emoji) {
+  if (!messages.length) return;
+  addReaction(messages[messages.length-1].id, emoji);
+}
+
+function timeStr(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = Math.floor((now-d)/86400000);
+  const time = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  if (diff === 0) return time;
+  if (diff === 1) return `Yesterday ${time}`;
+  return `${d.toLocaleDateString()} ${time}`;
+}
+
+function render() {
+  const container = document.getElementById('chat-messages');
+  if (!messages.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-text">No messages yet — say ciao!</div></div>`;
+    document.getElementById('msg-count').textContent = '0';
+    return;
+  }
+  document.getElementById('msg-count').textContent = messages.length;
+
+  container.innerHTML = messages.map(msg => {
+    const isMe = msg.author === myName;
+    const reactions = msg.reactions || {};
+    const reactionHtml = Object.entries(reactions).filter(([,n])=>n>0).map(([e,n]) => {
+      const reacted = myReactions[msg.id+e];
+      return `<span class="reaction ${reacted?'reacted':''}" onclick="addReaction('${msg.id}','${e}')" title="React">${e} ${n}</span>`;
+    }).join('');
+
+    return `
+    <div class="msg ${isMe?'mine':'theirs'}">
+      <div class="msg-bubble">${msg.text.replace(/\n/g,'<br>')}</div>
+      <div class="msg-meta">
+        <span class="msg-author">${msg.author}</span>
+        <span>${timeStr(msg.created_at)}</span>
+      </div>
+      <div class="reactions">
+        ${reactionHtml}
+        <button class="add-reaction-btn" onclick="promptReaction('${msg.id}')">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function promptReaction(msgId) {
+  const emoji = prompt('Type or paste an emoji to react:');
+  if (emoji && emoji.trim()) addReaction(msgId, emoji.trim());
+}
+
+function scrollBottom() {
+  const c = document.getElementById('chat-messages');
+  setTimeout(() => c.scrollTop = c.scrollHeight, 50);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Realtime
+try {
+    if (!messages.find(m => m.id === payload.new.id)) {
+      messages.push(payload.new); render(); scrollBottom();
+    }
+    const i = messages.findIndex(m => m.id === payload.new.id);
+    if (i > -1) { messages[i] = payload.new; render(); }
+  }).subscribe();
+} catch {}
+
+load();
+// Poll for new messages every 15 seconds
+setInterval(load, 15000);
+</script>
+</body>
+</html>

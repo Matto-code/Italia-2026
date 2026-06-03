@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Packing Lists — Italia 2026</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  .categories { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .cat-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  .cat-header { padding: 16px 20px 12px; border-bottom: 1px solid rgba(158,142,120,0.1); display: flex; align-items: center; justify-content: space-between; }
+  .cat-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; display: flex; align-items: center; gap: 8px; }
+  .cat-count { font-size: 11px; color: var(--stone); letter-spacing: 1px; }
+  .cat-items { padding: 8px 0; min-height: 60px; }
+  .pack-item { display: flex; align-items: center; gap: 10px; padding: 8px 20px; font-size: 13px; font-weight: 300; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(158,142,120,0.07); }
+  .pack-item:last-child { border-bottom: none; }
+  .pack-item:hover { background: rgba(196,103,58,0.04); }
+  .pack-cb { width: 16px; height: 16px; border: 1.5px solid var(--stone); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .pack-item.checked .pack-cb { background: var(--olive); border-color: var(--olive); }
+  .pack-item.checked .pack-cb::after { content: '✓'; font-size: 10px; color: white; }
+  .pack-item.checked .pack-label { color: var(--stone); text-decoration: line-through; }
+  .pack-label { flex: 1; }
+  .pack-del { opacity: 0; background: none; border: none; cursor: pointer; color: var(--stone); font-size: 16px; transition: opacity 0.15s, color 0.15s; padding: 0 2px; }
+  .pack-item:hover .pack-del { opacity: 1; }
+  .pack-del:hover { color: #c0392b; }
+  .cat-add { padding: 10px 20px; display: flex; gap: 8px; border-top: 1px solid rgba(158,142,120,0.1); }
+  .cat-add input { flex: 1; padding: 7px 10px; font-size: 12px; border-radius: 5px; }
+  .cat-add button { background: none; border: 1px solid rgba(158,142,120,0.3); border-radius: 5px; padding: 7px 12px; cursor: pointer; color: var(--stone); font-size: 16px; transition: all 0.15s; }
+  .cat-add button:hover { border-color: var(--terracotta); color: var(--terracotta); }
+  .progress-bar { height: 3px; background: rgba(158,142,120,0.15); }
+  .progress-fill { height: 100%; background: var(--olive); transition: width 0.4s; }
+  .who-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .who-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(158,142,120,0.3); background: transparent; font-family: 'Jost',sans-serif; font-size: 11px; letter-spacing: 1px; cursor: pointer; color: var(--stone); transition: all 0.15s; }
+  .who-btn.active { background: var(--terracotta); border-color: var(--terracotta); color: white; }
+</style>
+</head>
+<body>
+<nav class="portal-nav">
+  <a class="nav-home" href="index.html">Italia ✦</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="planner.html">Itinerary</a>
+    <a class="nav-link active" href="packing.html">Packing</a>
+    <a class="nav-link" href="budget.html">Budget</a>
+    <a class="nav-link" href="ideas.html">Ideas</a>
+    <a class="nav-link" href="memories.html">Memories</a>
+    <a class="nav-link" href="chat.html">Chat</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-eyebrow">Italia 2026</div>
+    <div class="page-title">Packing <em>Lists</em></div>
+    <div class="page-subtitle">Shared · tick as you go · syncs for everyone</div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="who-filter" id="who-filter">
+    <button class="who-btn active" onclick="filterWho('all', this)">Everyone</button>
+    <button class="who-btn" onclick="filterWho('shared', this)">Shared</button>
+    <button class="who-btn" onclick="filterWho('Mum', this)">Mum</button>
+    <button class="who-btn" onclick="filterWho('Dad', this)">Dad</button>
+  </div>
+
+  <div class="categories" id="categories-grid">
+    <div class="loading"><div class="spinner"></div> Loading lists…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
+
+<script>
+const db = getSupabase();
+let items = [];
+let currentWho = 'all';
+
+const DEFAULT_CATEGORIES = [
+  { id: 'documents', icon: '📄', label: 'Documents', defaults: ['Passports','Travel insurance docs','Flight confirmations','Hotel bookings','Driver\'s licence','European Health Card','Emergency contacts'] },
+  { id: 'clothes',   icon: '👗', label: 'Clothes',   defaults: ['Light summer dresses/shirts','Comfortable walking shoes','Smart dinner outfit','Swimwear','Light cardigan/jacket','Sunhat','Underwear x 10','Socks x 10'] },
+  { id: 'toiletries',icon: '🧴', label: 'Toiletries',defaults: ['Sunscreen SPF50+','Insect repellent','Shampoo & conditioner','Toothbrush & toothpaste','Deodorant','Prescription medications','Pain relief','Lip balm'] },
+  { id: 'tech',      icon: '🔌', label: 'Tech',      defaults: ['Phone & charger','Universal travel adapter','Camera','Portable power bank','Earphones/headphones','Kindle/tablet'] },
+  { id: 'daypack',   icon: '🎒', label: 'Day Pack',  defaults: ['Reusable water bottle','Small day bag','Travel umbrella','Sunglasses','Snacks for travel days','Pocket tissues'] },
+  { id: 'misc',      icon: '✨', label: 'Miscellaneous', defaults: ['Euros (cash)','Credit/debit cards','Google Translate offline','Maps.me offline maps','Travel clothesline','Laundry tabs'] },
+];
+
+async function loadItems() {
+  try {
+    const { data, error } = await db.from('packing_items').select('*').order('created_at');
+    if (error) throw error;
+    items = data;
+    render();
+  } catch(e) {
+    // Fallback to local if Supabase not configured
+    items = JSON.parse(localStorage.getItem('packing_items') || '[]');
+    if (!items.length) seedDefaults();
+    else render();
+  }
+}
+
+function seedDefaults() {
+  items = DEFAULT_CATEGORIES.flatMap(cat =>
+    cat.defaults.map((label, i) => ({
+      id: `${cat.id}_${i}`, category: cat.id, label,
+      checked: false, who: 'shared', created_at: new Date().toISOString()
+    }))
+  );
+  saveLocal(); render();
+}
+
+function saveLocal() { localStorage.setItem('packing_items', JSON.stringify(items)); }
+
+async function toggleItem(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.checked = !item.checked;
+  try {
+    await db.from('packing_items').update({ checked: item.checked }).eq('id', id);
+  } catch { saveLocal(); }
+  render(); showToast(item.checked ? '✓ Packed!' : 'Unpacked');
+}
+
+async function addItem(category, label) {
+  if (!label.trim()) return;
+  const item = { id: crypto.randomUUID(), category, label: label.trim(), checked: false, who: currentWho === 'all' ? 'shared' : currentWho, created_at: new Date().toISOString() };
+  items.push(item);
+  try {
+    await db.from('packing_items').insert(item);
+  } catch { saveLocal(); }
+  render();
+}
+
+async function deleteItem(id) {
+  items = items.filter(i => i.id !== id);
+  try {
+    await db.from('packing_items').delete().eq('id', id);
+  } catch { saveLocal(); }
+  render();
+}
+
+function filterWho(who, btn) {
+  currentWho = who;
+  document.querySelectorAll('.who-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function filtered(catId) {
+  return items.filter(i => i.category === catId && (currentWho === 'all' || i.who === currentWho || i.who === 'shared'));
+}
+
+function render() {
+  const grid = document.getElementById('categories-grid');
+  grid.innerHTML = '';
+  DEFAULT_CATEGORIES.forEach(cat => {
+    const catItems = filtered(cat.id);
+    const checked = catItems.filter(i => i.checked).length;
+    const pct = catItems.length ? Math.round(checked/catItems.length*100) : 0;
+    const card = document.createElement('div');
+    card.className = 'cat-card fade-up';
+    card.innerHTML = `
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="cat-header">
+        <div class="cat-title">${cat.icon} ${cat.label}</div>
+        <div class="cat-count">${checked}/${catItems.length}</div>
+      </div>
+      <div class="cat-items" id="items-${cat.id}">
+        ${catItems.length === 0 ? '<div style="padding:16px 20px;font-size:12px;color:var(--stone);font-style:italic">No items yet</div>' :
+          catItems.map(item => `
+            <div class="pack-item ${item.checked?'checked':''}" id="pi-${item.id}">
+              <div class="pack-cb" onclick="toggleItem('${item.id}')"></div>
+              <span class="pack-label" onclick="toggleItem('${item.id}')">${item.label}</span>
+              <button class="pack-del" onclick="deleteItem('${item.id}')" title="Remove">×</button>
+            </div>`).join('')}
+      </div>
+      <div class="cat-add">
+        <input type="text" placeholder="Add item…" id="add-${cat.id}" onkeydown="if(event.key==='Enter') submitAdd('${cat.id}')">
+        <button onclick="submitAdd('${cat.id}')">+</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function submitAdd(catId) {
+  const inp = document.getElementById('add-' + catId);
+  addItem(catId, inp.value);
+  inp.value = '';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Realtime sync
+try {
+} catch {}
+
+loadItems();
+</script>
+</body>
+</html>

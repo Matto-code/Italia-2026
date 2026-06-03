@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memories — Italia 2026</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  .memories-grid { columns: 3 280px; gap: 16px; }
+  .memory-card { break-inside: avoid; background: var(--white); border: 1px solid rgba(158,142,120,0.14); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 16px; transition: transform 0.2s; }
+  .memory-card:hover { transform: translateY(-2px); }
+  .memory-img { width: 100%; display: block; object-fit: cover; background: var(--sand); }
+  .memory-img-placeholder { width: 100%; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; font-size: 36px; background: linear-gradient(135deg, var(--sand), #e8dbc8); }
+  .memory-body { padding: 16px 18px; }
+  .memory-caption { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; line-height: 1.3; margin-bottom: 6px; }
+  .memory-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .memory-author { font-size: 11px; color: var(--stone); letter-spacing: 1px; }
+  .memory-location { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: var(--terracotta); color: white; padding: 2px 8px; border-radius: 3px; }
+  .memory-del { background: none; border: none; cursor: pointer; color: var(--stone); font-size: 15px; opacity: 0.3; transition: opacity 0.15s; }
+  .memory-card:hover .memory-del { opacity: 1; }
+
+  .add-form { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 26px 28px; box-shadow: var(--shadow); margin-bottom: 32px; }
+  .form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .emoji-opt { width: 36px; height: 36px; border: 1px solid rgba(158,142,120,0.25); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.15s; }
+  .emoji-opt.selected, .emoji-opt:hover { border-color: var(--terracotta); background: rgba(196,103,58,0.08); transform: scale(1.1); }
+
+  @media (max-width: 640px) { .form-row2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav class="portal-nav">
+  <a class="nav-home" href="index.html">Italia ✦</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="planner.html">Itinerary</a>
+    <a class="nav-link" href="packing.html">Packing</a>
+    <a class="nav-link" href="budget.html">Budget</a>
+    <a class="nav-link" href="ideas.html">Ideas</a>
+    <a class="nav-link active" href="memories.html">Memories</a>
+    <a class="nav-link" href="chat.html">Chat</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-eyebrow">Italia 2026</div>
+    <div class="page-title"><em>Memories</em></div>
+    <div class="page-subtitle">Capture moments · highlights · favourite days</div>
+  </div>
+</div>
+
+<div class="page-content">
+  <!-- Add memory -->
+  <div class="add-form">
+    <div class="card-title">Add a Memory</div>
+    <div class="card-sub">Capture a moment, a meal, a view — anything worth remembering</div>
+    <textarea id="mem-caption" placeholder="Describe the memory…" style="margin-top:12px"></textarea>
+    <div class="form-row2" style="margin-top:10px">
+      <select id="mem-location">
+        <option value="Florence">📍 Florence</option>
+        <option value="Rome">📍 Rome</option>
+        <option value="Alghero">📍 Alghero</option>
+        <option value="Lucerne">📍 Lucerne</option>
+        <option value="Milan">📍 Milan</option>
+        <option value="On the way">📍 On the way</option>
+      </select>
+      <input type="text" id="mem-author" placeholder="Your name">
+    </div>
+    <div style="margin:10px 0;font-size:11px;letter-spacing:1px;color:var(--stone)">Pick an emoji to represent this memory:</div>
+    <div class="emoji-picker" id="emoji-picker">
+      🌅 🍕 🍷 🏛️ 🌊 🛵 🎨 ☕ 🛶 🌿 🗺️ 🥂 🍦  🎶 🌙 😂 😍 🥹
+    </div>
+    <input type="text" id="mem-emoji-hidden" style="display:none">
+    <div class="form-row2" style="margin-top:10px">
+      <input type="url" id="mem-img-url" placeholder="Image URL (optional — paste a photo link)">
+    </div>
+    <button class="btn btn-primary" onclick="addMemory()" style="margin-top:4px">+ Add Memory</button>
+  </div>
+
+  <!-- Grid -->
+  <div class="memories-grid" id="memories-grid">
+    <div class="loading" style="columns:unset"><div class="spinner"></div> Loading memories…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
+
+<script>
+const db = getSupabase();
+let memories = [];
+let selectedEmoji = '🌅';
+
+// Emoji picker
+document.addEventListener('DOMContentLoaded', () => {
+  const picker = document.getElementById('emoji-picker');
+  picker.innerHTML = ['🌅','🍕','🍷','🏛️','🌊','🛵','🎨','☕','🛶','🌿','🗺️','🥂','🍦','🎶','🌙','😂','😍','🥹']
+    .map((e,i) => `<div class="emoji-opt${i===0?' selected':''}" onclick="selectEmoji('${e}',this)">${e}</div>`).join('');
+});
+
+function selectEmoji(e, el) {
+  selectedEmoji = e;
+  document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function load() {
+  try {
+    const { data, error } = await db.from('memories').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    memories = data;
+  } catch {
+    memories = JSON.parse(localStorage.getItem('memories') || '[]');
+  }
+  render();
+}
+
+async function addMemory() {
+  const caption = document.getElementById('mem-caption').value.trim();
+  if (!caption) { showToast('Add a caption for this memory'); return; }
+  const mem = {
+    id: crypto.randomUUID(),
+    caption,
+    location: document.getElementById('mem-location').value,
+    author: document.getElementById('mem-author').value.trim() || 'Anonymous',
+    emoji: selectedEmoji,
+    img_url: document.getElementById('mem-img-url').value.trim(),
+    created_at: new Date().toISOString(),
+  };
+  memories.unshift(mem);
+  try { await db.from('memories').insert(mem); } catch { localStorage.setItem('memories', JSON.stringify(memories)); }
+  document.getElementById('mem-caption').value = '';
+  document.getElementById('mem-img-url').value = '';
+  render(); showToast('Memory saved! 📸');
+}
+
+async function deleteMemory(id) {
+  memories = memories.filter(m => m.id !== id);
+  try { await db.from('memories').delete().eq('id', id); } catch { localStorage.setItem('memories', JSON.stringify(memories)); }
+  render();
+}
+
+function timeAgo(ts) {
+  const d = Math.floor((Date.now()-new Date(ts))/86400000);
+  return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d}d ago`;
+}
+
+function render() {
+  const grid = document.getElementById('memories-grid');
+  if (!memories.length) {
+    grid.innerHTML = `<div class="empty-state" style="columns:unset"><div class="empty-state-icon">📸</div><div class="empty-state-text">No memories yet — you're saving them for the trip!</div></div>`;
+    return;
+  }
+  grid.innerHTML = memories.map(m => `
+    <div class="memory-card fade-up">
+      ${m.img_url
+        ? `<img class="memory-img" src="${m.img_url}" alt="${m.caption}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="memory-img-placeholder">${m.emoji}</div>`}
+      <div class="memory-body">
+        <div class="memory-caption">${m.emoji} ${m.caption}</div>
+        <div class="memory-meta">
+          <div>
+            <span class="memory-location">${m.location}</span>
+            <span class="memory-author" style="margin-left:8px">by ${m.author} · ${timeAgo(m.created_at)}</span>
+          </div>
+          <button class="memory-del" onclick="deleteMemory('${m.id}')" title="Remove">×</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+load();
+</script>
+</body>
+</html>

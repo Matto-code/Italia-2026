@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Itinerary — Italia 2026 Family Portal</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root {
+    --terracotta: #C4673A;
+    --sand: #F2E8D9;
+    --olive: #6B7C4A;
+    --midnight: #1A1A2E;
+    --cream: #FAF6EE;
+    --stone: #9E8E78;
+    --gold: #C9A84C;
+    --dark: #2C2416;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    background: var(--midnight);
+    overflow: hidden;
+    padding: 80px 40px 60px;
+    text-align: center;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 120%, rgba(196,103,58,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 20% 30%, rgba(201,168,76,0.15) 0%, transparent 60%);
+  }
+  .hero-eyebrow {
+    position: relative;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.1s forwards;
+  }
+  .hero h1 {
+    position: relative;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(52px, 9vw, 96px);
+    color: var(--sand);
+    line-height: 1;
+    letter-spacing: -1px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.25s forwards;
+  }
+  .hero h1 em { font-style: italic; color: var(--terracotta); }
+  .hero-dates {
+    position: relative;
+    font-weight: 200;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-top: 18px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .hero-stats {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-top: 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.55s forwards;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 38px;
+    font-weight: 300;
+    color: var(--sand);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-top: 4px;
+  }
+
+  /* COUNTDOWN */
+  .countdown-wrap {
+    position: relative;
+    margin-top: 40px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.7s forwards;
+  }
+  .countdown-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 14px;
+  }
+  .countdown {
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+  }
+  .cd-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 28px;
+    position: relative;
+  }
+  .cd-unit + .cd-unit {
+    border-left: 1px solid rgba(255,255,255,0.08);
+  }
+  .cd-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 6vw, 58px);
+    font-weight: 300;
+    color: var(--sand);
+    line-height: 1;
+    letter-spacing: -1px;
+    min-width: 2ch;
+    text-align: center;
+    transition: color 0.3s;
+  }
+  .cd-unit:first-child .cd-num { color: var(--terracotta); }
+  .cd-lbl {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-top: 6px;
+  }
+  .cd-sep {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px;
+    color: rgba(158,142,120,0.3);
+    align-self: center;
+    line-height: 1;
+    padding: 0 2px;
+    margin-top: -8px;
+  }
+  .countdown-departed {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+
+  /* TIMELINE */
+  .timeline-section {
+    max-width: 900px;
+    margin: 64px auto;
+    padding: 0 24px;
+  }
+  .section-title {
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 32px;
+  }
+
+  .stop {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 0 32px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s forwards;
+  }
+  .stop:nth-child(1) { animation-delay: 0.1s; }
+  .stop:nth-child(2) { animation-delay: 0.2s; }
+  .stop:nth-child(3) { animation-delay: 0.3s; }
+  .stop:nth-child(4) { animation-delay: 0.4s; }
+  .stop:nth-child(5) { animation-delay: 0.5s; }
+
+  .stop-left {
+    text-align: right;
+    padding-top: 22px;
+  }
+  .stop-dates {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: var(--stone);
+    line-height: 1.4;
+  }
+  .stop-nights {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    color: var(--terracotta);
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .stop-nights span {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: var(--stone);
+    vertical-align: middle;
+  }
+
+  .stop-right {
+    border-left: 1px solid rgba(158,142,120,0.25);
+    padding: 0 0 40px 32px;
+    position: relative;
+  }
+  .stop-right::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 28px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    border: 2px solid var(--cream);
+    z-index: 1;
+  }
+  .stop:last-child .stop-right { border-left-color: transparent; }
+
+  /* Location header — click to expand/collapse all days */
+  .stop-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-top: 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .stop-header:hover .stop-city { color: var(--terracotta); }
+
+  .stop-city {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--dark);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.2s;
+  }
+  .stop-tag {
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--terracotta);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .stop-tag.swiss { background: var(--olive); }
+
+  .stop-region {
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .collapse-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 22px;
+    flex-shrink: 0;
+  }
+  .collapse-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--stone);
+    transition: color 0.2s;
+  }
+  .collapse-icon {
+    width: 22px;
+    height: 22px;
+    border: 1px solid rgba(158,142,120,0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--stone);
+    transition: transform 0.3s ease, border-color 0.2s, color 0.2s;
+    transform: rotate(90deg);
+  }
+  .stop-header:hover .collapse-icon { border-color: var(--terracotta); color: var(--terracotta); }
+  .stop-header:hover .collapse-label { color: var(--terracotta); }
+  .stop-header.collapsed .collapse-icon { transform: rotate(0deg); }
+
+  /* DAYS CONTAINER — animated expand/collapse */
+  .days-container {
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
+    max-height: 3000px;
+    opacity: 1;
+  }
+  .days-container.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+  }
+
+  /* DAY CARD */
+  .day-row {
+    margin-top: 10px;
+    border: 1px solid rgba(158,142,120,0.15);
+    border-radius: 8px;
+    background: white;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .day-row:hover { box-shadow: 0 2px 16px rgba(196,103,58,0.07); }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .day-header:hover { background: rgba(196,103,58,0.04); }
+
+  .day-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--terracotta);
+    font-weight: 400;
+    min-width: 52px;
+    line-height: 1;
+  }
+  .day-date {
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--stone);
+    letter-spacing: 0.5px;
+    min-width: 90px;
+  }
+  .day-preview {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--dark);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-style: italic;
+  }
+  .day-chevron {
+    font-size: 13px;
+    color: var(--stone);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .day-header.open .day-chevron { transform: rotate(90deg); }
+
+  /* DAY BODY */
+  .day-body {
+    display: none;
+    padding: 4px 16px 16px 16px;
+    border-top: 1px solid rgba(158,142,120,0.1);
+    animation: fadeIn 0.2s ease;
+  }
+  .day-body.open { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  .day-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  .note-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--cream);
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dark);
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .note-item:hover { background: #EEE4D5; }
+  .note-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 6px;
+    transition: background 0.2s;
+  }
+  .note-item.done .note-dot { background: var(--olive); }
+  .note-item.done .note-text { text-decoration: line-through; color: var(--stone); }
+
+  .add-note-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 5px 0;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: var(--stone);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'Jost', sans-serif;
+    transition: color 0.2s;
+  }
+  .add-note-btn:hover { color: var(--terracotta); }
+  .add-note-btn::before { content: '+'; font-size: 16px; font-weight: 200; margin-right: 2px; }
+
+  .note-input {
+    width: 100%;
+    border: 1px solid var(--terracotta);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dark);
+    background: white;
+    outline: none;
+    margin-top: 6px;
+  }
+
+  /* TWO COL */
+  .two-col {
+    max-width: 900px;
+    margin: 0 auto 64px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .card {
+    background: white;
+    border: 1px solid rgba(158,142,120,0.15);
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .card-sub { font-size: 11px; letter-spacing: 1px; color: var(--stone); margin-bottom: 20px; }
+
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(158,142,120,0.1);
+    font-size: 13px;
+    font-weight: 300;
+    cursor: pointer;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .cb {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--stone);
+    border-radius: 3px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .checklist-item.checked .cb { background: var(--olive); border-color: var(--olive); }
+  .checklist-item.checked .cb::after { content: '✓'; font-size: 10px; color: white; }
+  .checklist-item.checked .cb-label { color: var(--stone); text-decoration: line-through; }
+
+  .budget-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(158,142,120,0.1);
+    font-size: 13px;
+    font-weight: 300;
+  }
+  .budget-row:last-child { border-bottom: none; }
+  .budget-amt {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--terracotta);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .budget-amt input {
+    width: 90px;
+    text-align: right;
+    border: none;
+    border-bottom: 1px solid var(--terracotta);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--terracotta);
+    background: transparent;
+    outline: none;
+  }
+  .budget-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--stone);
+    font-weight: 400;
+  }
+  .budget-total-amt {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    color: var(--dark);
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--stone);
+    text-transform: uppercase;
+    border-top: 1px solid rgba(158,142,120,0.15);
+  }
+
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; }
+    .stop { grid-template-columns: 76px 1fr; gap: 0 16px; }
+    .hero-stats { gap: 28px; }
+    .day-preview { display: none; }
+    .collapse-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="portal-nav">
+  <a class="nav-home" href="index.html">Italia &#10022;</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link active" href="planner.html">Itinerary</a>
+    <a class="nav-link" href="packing.html">Packing</a>
+    <a class="nav-link" href="budget.html">Budget</a>
+    <a class="nav-link" href="ideas.html">Ideas</a>
+    <a class="nav-link" href="memories.html">Memories</a>
+    <a class="nav-link" href="chat.html">Chat</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">September — October 2026</div>
+  <h1>La <em>Dolce</em> Vita</h1>
+  <div class="hero-dates">15 September — 7 October · 23 Nights</div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Destinations</div></div>
+    <div class="stat"><div class="stat-num">23</div><div class="stat-label">Nights</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">Regions</div></div>
+  </div>
+
+  <div class="countdown-wrap">
+    <div class="countdown-label">Departure countdown</div>
+    <div class="countdown" id="countdown">
+      <div class="cd-unit"><div class="cd-num" id="cd-days">—</div><div class="cd-lbl">Days</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-hours">—</div><div class="cd-lbl">Hours</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-mins">—</div><div class="cd-lbl">Mins</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-secs">—</div><div class="cd-lbl">Secs</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="timeline-section">
+  <div class="section-title">Itinerary — click a city to collapse its days</div>
+
+  <!-- ===== FLORENCE ===== -->
+  <div class="stop">
+    <div class="stop-left">
+      <div class="stop-dates">15–19 Sept</div>
+      <div class="stop-nights">5 <span>nts</span></div>
+    </div>
+    <div class="stop-right">
+      <div class="stop-header" onclick="toggleStop(this)">
+        <div>
+          <div class="stop-city">Florence <span class="stop-tag">Tuscany</span></div>
+          <div class="stop-region">Firenze · Central Italy</div>
+        </div>
+        <div class="collapse-btn">
+          <span class="collapse-label">Collapse</span>
+          <span class="collapse-icon">›</span>
+        </div>
+      </div>
+      <div class="days-container">
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 1</div>
+            <div class="day-date">Mon 15 Sept</div>
+            <div class="day-preview">Arrival day</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Arrive & check in — settle into accommodation</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Leisurely walk through Piazza della Repubblica</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">First dinner — try ribollita or bistecca Fiorentina</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 2</div>
+            <div class="day-date">Tue 16 Sept</div>
+            <div class="day-preview">Uffizi & Duomo</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Uffizi Gallery — book tickets in advance</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Duomo & Brunelleschi's dome climb</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Piazza della Signoria for aperitivo at dusk</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 3</div>
+            <div class="day-date">Wed 17 Sept</div>
+            <div class="day-preview">Oltrarno & Boboli Gardens</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Pitti Palace & Boboli Gardens</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Oltrarno neighbourhood — artisan workshops & cafes</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Ponte Vecchio at sunset</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 4</div>
+            <div class="day-date">Thu 18 Sept</div>
+            <div class="day-preview">Day trip — Siena or Chianti</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Day trip to Siena — medieval city & Il Campo</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Or: Chianti wine country drive & vineyard lunch</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 5</div>
+            <div class="day-date">Fri 19 Sept</div>
+            <div class="day-preview">Final morning & travel to Rome</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Morning at Mercato Centrale — coffee & pastries</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Train to Rome (Frecciarossa — ~1.5 hrs, book ahead)</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+      </div><!-- /days-container -->
+    </div>
+  </div>
+
+  <!-- ===== ROME ===== -->
+  <div class="stop">
+    <div class="stop-left">
+      <div class="stop-dates">20–23 Sept</div>
+      <div class="stop-nights">4 <span>nts</span></div>
+    </div>
+    <div class="stop-right">
+      <div class="stop-header" onclick="toggleStop(this)">
+        <div>
+          <div class="stop-city">Rome <span class="stop-tag">Lazio</span></div>
+          <div class="stop-region">Roma · Central Italy</div>
+        </div>
+        <div class="collapse-btn">
+          <span class="collapse-label">Collapse</span>
+          <span class="collapse-icon">›</span>
+        </div>
+      </div>
+      <div class="days-container">
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 1</div>
+            <div class="day-date">Sat 20 Sept</div>
+            <div class="day-preview">Arrive & Ancient Rome</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Arrive & check in</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Colosseum & Roman Forum — pre-book timed entry</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Palatine Hill views at dusk</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 2</div>
+            <div class="day-date">Sun 21 Sept</div>
+            <div class="day-preview">Vatican Museums & St Peter's</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Vatican Museums & Sistine Chapel — early entry recommended</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">St Peter's Basilica & climb the dome</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Castel Sant'Angelo walk along the Tiber</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 3</div>
+            <div class="day-date">Mon 22 Sept</div>
+            <div class="day-preview">Piazzas, Pantheon & Trastevere</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Trevi Fountain — go early to beat the crowds</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Piazza Navona & Pantheon</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Trastevere evening walk & dinner</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 4</div>
+            <div class="day-date">Tue 23 Sept</div>
+            <div class="day-preview">Morning free & fly to Alghero</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Morning free — Campo de' Fiori market</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Fly Rome (FCO/CIA) → Alghero (AHO) — check Ryanair/Vueling/ITA</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ALGHERO ===== -->
+  <div class="stop">
+    <div class="stop-left">
+      <div class="stop-dates">24–30 Sept</div>
+      <div class="stop-nights">7 <span>nts</span></div>
+    </div>
+    <div class="stop-right">
+      <div class="stop-header" onclick="toggleStop(this)">
+        <div>
+          <div class="stop-city">Alghero <span class="stop-tag">Sardinia</span></div>
+          <div class="stop-region">Sassari · Northern Sardinia</div>
+        </div>
+        <div class="collapse-btn">
+          <span class="collapse-label">Collapse</span>
+          <span class="collapse-icon">›</span>
+        </div>
+      </div>
+      <div class="days-container">
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 1</div>
+            <div class="day-date">Wed 24 Sept</div>
+            <div class="day-preview">Arrive & Old Town</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Arrive, check in & pick up rental car</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Stroll the Catalan quarter of the old town</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Seafood dinner on the bastions — try aragosta (lobster)</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 2</div>
+            <div class="day-date">Thu 25 Sept</div>
+            <div class="day-preview">Neptune's Grotto boat trip</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Boat trip to Grotta di Nettuno (Neptune's Grotto)</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Or: drive to Capo Caccia for clifftop views</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 3</div>
+            <div class="day-date">Fri 26 Sept</div>
+            <div class="day-preview">Beach day — Lazzaretto or Bombarde</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Spiaggia del Lazzaretto — crystal clear turquoise water</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Or: Le Bombarde beach — great for snorkelling</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 4</div>
+            <div class="day-date">Sat 27 Sept</div>
+            <div class="day-preview">Drive north — Stintino & La Pelosa</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Drive to Stintino — stunning La Pelosa beach</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Optional boat trip to Asinara National Park</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 5</div>
+            <div class="day-date">Sun 28 Sept</div>
+            <div class="day-preview">Inland Sardinia — Nuraghi ruins</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Nuraghe di Palmavera — Bronze Age ruins near Alghero</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Lunch in Sassari at the local market</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 6</div>
+            <div class="day-date">Mon 29 Sept</div>
+            <div class="day-preview">Free day & farewell dinner</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Free day — relax, swim, explore at leisure</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Farewell Sardinian dinner — try porceddu (suckling pig)</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 7</div>
+            <div class="day-date">Tue 30 Sept</div>
+            <div class="day-preview">Fly to Lucerne</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Return rental car at Alghero airport (AHO)</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Fly AHO → ZRH (Zurich) or BSL (Basel), then train to Lucerne (~1 hr)</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LUCERNE ===== -->
+  <div class="stop">
+    <div class="stop-left">
+      <div class="stop-dates">1–4 Oct</div>
+      <div class="stop-nights">4 <span>nts</span></div>
+    </div>
+    <div class="stop-right">
+      <div class="stop-header" onclick="toggleStop(this)">
+        <div>
+          <div class="stop-city">Lucerne <span class="stop-tag swiss">Switzerland</span></div>
+          <div class="stop-region">Lake Lucerne · Central Switzerland</div>
+        </div>
+        <div class="collapse-btn">
+          <span class="collapse-label">Collapse</span>
+          <span class="collapse-icon">›</span>
+        </div>
+      </div>
+      <div class="days-container">
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 1</div>
+            <div class="day-date">Thu 1 Oct</div>
+            <div class="day-preview">Arrive & Old Town</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Arrive & check in</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Chapel Bridge (Kapellbrücke) & Lion Monument</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Cheese fondue dinner!</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 2</div>
+            <div class="day-date">Fri 2 Oct</div>
+            <div class="day-preview">Mt Pilatus or Mt Rigi</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Mt Pilatus — world's steepest cogwheel railway up, gondola down</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Or: Mt Rigi — "Queen of the Mountains" — sunrise hike option</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 3</div>
+            <div class="day-date">Sat 3 Oct</div>
+            <div class="day-preview">Lake cruise & day trip</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Lake Lucerne boat cruise — panoramic Alps views</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Optional day trip to Interlaken or Bern</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 4</div>
+            <div class="day-date">Sun 4 Oct</div>
+            <div class="day-preview">Morning stroll & train to Milan</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Morning stroll along the lakefront promenade</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Train Lucerne → Milan (~3.5 hrs via Gotthard Base Tunnel)</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MILAN ===== -->
+  <div class="stop">
+    <div class="stop-left">
+      <div class="stop-dates">5–7 Oct</div>
+      <div class="stop-nights">3 <span>nts</span></div>
+    </div>
+    <div class="stop-right">
+      <div class="stop-header" onclick="toggleStop(this)">
+        <div>
+          <div class="stop-city">Milan <span class="stop-tag">Departure</span></div>
+          <div class="stop-region">Milano · Northern Italy</div>
+        </div>
+        <div class="collapse-btn">
+          <span class="collapse-label">Collapse</span>
+          <span class="collapse-icon">›</span>
+        </div>
+      </div>
+      <div class="days-container">
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 1</div>
+            <div class="day-date">Mon 5 Oct</div>
+            <div class="day-preview">Arrive & Duomo district</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Arrive & check in</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Duomo — rooftop terrace walk among the spires</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Galleria Vittorio Emanuele II — aperitivo Campari</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 2</div>
+            <div class="day-date">Tue 6 Oct</div>
+            <div class="day-preview">The Last Supper & Navigli</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">The Last Supper (Santa Maria delle Grazie) — MUST pre-book months ahead</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Brera district — art galleries & boutiques</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Aperitivo in the Navigli canalside district — evening</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+        <div class="day-row">
+          <div class="day-header" onclick="toggleDay(this)">
+            <div class="day-num">Day 3</div>
+            <div class="day-date">Wed 7 Oct</div>
+            <div class="day-preview">Departure day — arrivederci!</div>
+            <div class="day-chevron">›</div>
+          </div>
+          <div class="day-body">
+            <div class="day-notes">
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Final espresso & cornetto — arrivederci Italia!</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Transfer to MXP (Malpensa) or LIN (Linate) — check which airport</div></div>
+              <div class="note-item" onclick="toggleNote(this)"><div class="note-dot"></div><div class="note-text">Fly home to Brisbane</div></div>
+            </div>
+            <button class="add-note-btn" onclick="addNote(this)">Add note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /timeline-section -->
+
+<!-- TWO COL: CHECKLIST + BUDGET -->
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">Pre-Departure</div>
+    <div class="card-sub">Tap to check off</div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Book flights (BNE → Florence or nearest)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Accommodation — Florence (5 nts)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Accommodation — Rome (4 nts)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Accommodation — Alghero (7 nts)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Accommodation — Lucerne (4 nts)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Accommodation — Milan (3 nts)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Internal flight: Rome → Alghero</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Internal flight: Alghero → Zurich/Basel</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Train: Florence → Rome</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Train: Lucerne → Milan</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Car hire — Alghero (7 days)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Uffizi tickets (Florence)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Colosseum & Roman Forum (Rome)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Vatican Museums (Rome)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">The Last Supper — Milan (book early!)</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Travel insurance</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Notify bank of travel</div></div>
+    <div class="checklist-item" onclick="toggleCheck(this)"><div class="cb"></div><div class="cb-label">Pack!</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Budget Tracker</div>
+    <div class="card-sub">Click amounts to edit · AUD</div>
+    <div class="budget-row"><div class="budget-label">International flights</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-row"><div class="budget-label">Internal flights</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-row"><div class="budget-label">Train tickets</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-row"><div class="budget-label">Accommodation</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-row"><div class="budget-label">Car hire (Sardinia)</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-row"><div class="budget-label">Attractions & tickets</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-row"><div class="budget-label">Food & dining</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-row"><div class="budget-label">Spending money</div><div class="budget-amt" onclick="editBudget(this)" data-val="0">— Add</div></div>
+    <div class="budget-total">
+      <div>Total</div>
+      <div class="budget-total-amt" id="budget-total">$0</div>
+    </div>
+  </div>
+</div>
+
+<footer>La Dolce Vita · Italia 2026 · 15 Sept – 7 Oct</footer>
+
+<script>
+  // Toggle all days for a location open/closed
+  function toggleStop(header) {
+    const container = header.nextElementSibling;
+    const willCollapse = !container.classList.contains('collapsed');
+    container.classList.toggle('collapsed', willCollapse);
+    header.classList.toggle('collapsed', willCollapse);
+    const label = header.querySelector('.collapse-label');
+    if (label) label.textContent = willCollapse ? 'Expand' : 'Collapse';
+  }
+
+  // Toggle individual day open/closed
+  function toggleDay(header) {
+    const body = header.nextElementSibling;
+    const isNowOpen = body.classList.toggle('open');
+    header.classList.toggle('open', isNowOpen);
+  }
+
+  // Toggle note done/undone
+  function toggleNote(el) { el.classList.toggle('done'); }
+
+  // Add a new note inside a day
+  function addNote(btn) {
+    const notesContainer = btn.previousElementSibling;
+    const input = document.createElement('input');
+    input.className = 'note-input';
+    input.placeholder = 'Type a note and press Enter…';
+    notesContainer.appendChild(input);
+    input.focus();
+
+    function commit() {
+      if (input.value.trim()) {
+        const note = document.createElement('div');
+        note.className = 'note-item';
+        note.innerHTML = `<div class="note-dot"></div><div class="note-text">${input.value.trim()}</div>`;
+        note.onclick = () => note.classList.toggle('done');
+        notesContainer.replaceChild(note, input);
+      } else {
+        if (input.parentNode) notesContainer.removeChild(input);
+      }
+    }
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') commit();
+      if (e.key === 'Escape' && input.parentNode) notesContainer.removeChild(input);
+    });
+    input.addEventListener('blur', commit);
+  }
+
+  // COUNTDOWN TIMER — target: 15 Sept 2026 00:00:00
+  (function() {
+    const target = new Date("2026-09-15T00:00:00");
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function tick() {
+      const now = new Date();
+      const diff = target - now;
+      if (diff <= 0) {
+        document.getElementById("countdown").innerHTML =
+          "<div class=\"countdown-departed\">Buon viaggio! 🇮🇹</div>";
+        return;
+      }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById("cd-days").textContent  = d;
+      document.getElementById("cd-hours").textContent = pad(h);
+      document.getElementById("cd-mins").textContent  = pad(m);
+      document.getElementById("cd-secs").textContent  = pad(s);
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+
+  function toggleCheck(el) { el.classList.toggle("checked"); }
+
+  function editBudget(el) {
+    const current = parseFloat(el.dataset.val) || 0;
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.value = current > 0 ? current : '';
+    input.placeholder = '0';
+    el.replaceWith(input);
+    input.focus();
+
+    function save() {
+      const val = parseFloat(input.value) || 0;
+      const div = document.createElement('div');
+      div.className = 'budget-amt';
+      div.dataset.val = val;
+      div.textContent = val > 0 ? '$' + val.toLocaleString() : '— Add';
+      div.onclick = () => editBudget(div);
+      input.replaceWith(div);
+      updateTotal();
+    }
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+  }
+
+  function updateTotal() {
+    let total = 0;
+    document.querySelectorAll('.budget-amt').forEach(a => { total += parseFloat(a.dataset.val) || 0; });
+    document.getElementById('budget-total').textContent = '$' + total.toLocaleString();
+  }
+</script>
+</body>
+</html>

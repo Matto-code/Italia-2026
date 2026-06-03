@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ideas Board — Italia 2026</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+  .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(158,142,120,0.3); background: transparent; font-family: 'Jost',sans-serif; font-size: 11px; letter-spacing: 1px; cursor: pointer; color: var(--stone); transition: all 0.15s; }
+  .filter-btn.active { background: var(--terracotta); border-color: var(--terracotta); color: white; }
+  .filter-spacer { flex: 1; }
+
+  .ideas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px,1fr)); gap: 18px; }
+  .idea-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
+  .idea-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(196,103,58,0.1); }
+  .idea-cat-bar { height: 4px; }
+  .idea-body { padding: 18px 20px; flex: 1; }
+  .idea-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .idea-icon { font-size: 22px; flex-shrink: 0; }
+  .idea-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; line-height: 1.2; flex: 1; }
+  .idea-location { font-size: 11px; color: var(--stone); letter-spacing: 1px; margin-bottom: 8px; }
+  .idea-notes { font-size: 12px; font-weight: 300; color: var(--dark); line-height: 1.6; margin-bottom: 10px; }
+  .idea-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--terracotta); text-decoration: none; letter-spacing: 0.5px; border-bottom: 1px solid rgba(196,103,58,0.3); padding-bottom: 1px; transition: border-color 0.15s; }
+  .idea-link:hover { border-color: var(--terracotta); }
+  .idea-footer { padding: 10px 20px 14px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(158,142,120,0.08); }
+  .vote-btn { display: flex; align-items: center; gap: 5px; background: none; border: 1px solid rgba(158,142,120,0.25); border-radius: 20px; padding: 5px 12px; cursor: pointer; font-family: 'Jost',sans-serif; font-size: 12px; color: var(--stone); transition: all 0.2s; }
+  .vote-btn:hover, .vote-btn.voted { background: rgba(196,103,58,0.08); border-color: var(--terracotta); color: var(--terracotta); }
+  .vote-btn.voted { background: var(--terracotta); color: white; border-color: var(--terracotta); }
+  .idea-del { background: none; border: none; cursor: pointer; color: var(--stone); font-size: 15px; opacity: 0.4; transition: opacity 0.15s, color 0.15s; }
+  .idea-del:hover { opacity: 1; color: #c0392b; }
+  .idea-added { font-size: 10px; color: var(--stone); letter-spacing: 1px; }
+
+  /* Add form */
+  .add-form { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 26px 28px; box-shadow: var(--shadow); margin-bottom: 32px; }
+  .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin: 14px 0 12px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+  .cat-colors { flights:'#C4673A', accommodation:'#6B7C4A', food:'#C9A84C', activity:'#7B6FA0', shopping:'#4A7C8E', culture:'#A05252', misc:'#9E8E78' }
+
+  @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav class="portal-nav">
+  <a class="nav-home" href="index.html">Italia ✦</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="planner.html">Itinerary</a>
+    <a class="nav-link" href="packing.html">Packing</a>
+    <a class="nav-link" href="budget.html">Budget</a>
+    <a class="nav-link active" href="ideas.html">Ideas</a>
+    <a class="nav-link" href="memories.html">Memories</a>
+    <a class="nav-link" href="chat.html">Chat</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-eyebrow">Italia 2026</div>
+    <div class="page-title">Ideas <em>Board</em></div>
+    <div class="page-subtitle">Restaurants · activities · links · notes · vote on favourites</div>
+  </div>
+</div>
+
+<div class="page-content">
+
+  <!-- Add idea form -->
+  <div class="add-form">
+    <div class="card-title">Add an Idea</div>
+    <div class="card-sub">Save a restaurant, activity, or anything worth exploring</div>
+    <div class="form-grid">
+      <input type="text" id="idea-title" placeholder="Name (e.g. Da Enzo al 29, Rome)">
+      <select id="idea-cat">
+        <option value="food">🍝 Restaurant / Food</option>
+        <option value="activity">🎭 Activity / Tour</option>
+        <option value="culture">🏛️ Culture / Museum</option>
+        <option value="accommodation">🏨 Accommodation</option>
+        <option value="shopping">🛍️ Shopping</option>
+        <option value="misc">✨ Other</option>
+      </select>
+      <select id="idea-location">
+        <option value="Florence">Florence</option>
+        <option value="Rome">Rome</option>
+        <option value="Alghero">Alghero</option>
+        <option value="Lucerne">Lucerne</option>
+        <option value="Milan">Milan</option>
+        <option value="General">General</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <input type="url" id="idea-url" placeholder="Link (optional) — paste a URL">
+      <input type="text" id="idea-added-by" placeholder="Your name (e.g. Mum)">
+    </div>
+    <textarea id="idea-notes" placeholder="Notes — opening hours, why you want to go, tips…" style="margin-bottom:14px;height:70px"></textarea>
+    <button class="btn btn-primary" onclick="addIdea()">+ Add Idea</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('food',this)">🍝 Food</button>
+    <button class="filter-btn" onclick="setFilter('activity',this)">🎭 Activities</button>
+    <button class="filter-btn" onclick="setFilter('culture',this)">🏛️ Culture</button>
+    <button class="filter-btn" onclick="setFilter('accommodation',this)">🏨 Stays</button>
+    <button class="filter-btn" onclick="setFilter('shopping',this)">🛍️ Shopping</button>
+    <div class="filter-spacer"></div>
+    <button class="filter-btn" onclick="setSort('votes',this)" id="sort-votes">⭐ Top voted</button>
+  </div>
+
+  <div class="ideas-grid" id="ideas-grid">
+    <div class="loading"><div class="spinner"></div> Loading ideas…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
+
+<script>
+const db = getSupabase();
+let ideas = [];
+let currentFilter = 'all';
+let currentSort = 'newest';
+let myVotes = JSON.parse(localStorage.getItem('my_votes') || '[]');
+
+const CAT = {
+  food:          { icon:'🍝', label:'Restaurant', color:'#C4673A' },
+  activity:      { icon:'🎭', label:'Activity',   color:'#7B6FA0' },
+  culture:       { icon:'🏛️', label:'Culture',    color:'#A05252' },
+  accommodation: { icon:'🏨', label:'Stay',       color:'#6B7C4A' },
+  shopping:      { icon:'🛍️', label:'Shopping',   color:'#4A7C8E' },
+  misc:          { icon:'✨', label:'Other',       color:'#9E8E78' },
+};
+
+async function load() {
+  try {
+    const { data, error } = await db.from('ideas').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    ideas = data;
+  } catch {
+    ideas = JSON.parse(localStorage.getItem('ideas') || '[]');
+  }
+  render();
+}
+
+async function addIdea() {
+  const title = document.getElementById('idea-title').value.trim();
+  if (!title) { showToast('Give your idea a name'); return; }
+  const idea = {
+    id: crypto.randomUUID(),
+    title,
+    cat: document.getElementById('idea-cat').value,
+    location: document.getElementById('idea-location').value,
+    url: document.getElementById('idea-url').value.trim(),
+    notes: document.getElementById('idea-notes').value.trim(),
+    added_by: document.getElementById('idea-added-by').value.trim() || 'Anonymous',
+    votes: 0,
+    created_at: new Date().toISOString(),
+  };
+  ideas.unshift(idea);
+  try { await db.from('ideas').insert(idea); } catch { localStorage.setItem('ideas', JSON.stringify(ideas)); }
+  ['idea-title','idea-url','idea-notes','idea-added-by'].forEach(id => document.getElementById(id).value = '');
+  render(); showToast('Idea added! 🎉');
+}
+
+async function vote(id) {
+  const idea = ideas.find(i => i.id === id);
+  if (!idea) return;
+  const voted = myVotes.includes(id);
+  if (voted) { idea.votes = Math.max(0,(idea.votes||0)-1); myVotes = myVotes.filter(v=>v!==id); }
+  else        { idea.votes = (idea.votes||0)+1; myVotes.push(id); }
+  localStorage.setItem('my_votes', JSON.stringify(myVotes));
+  try { await db.from('ideas').update({ votes: idea.votes }).eq('id', id); } catch { localStorage.setItem('ideas', JSON.stringify(ideas)); }
+  render();
+}
+
+async function deleteIdea(id) {
+  if (!confirm('Remove this idea?')) return;
+  ideas = ideas.filter(i => i.id !== id);
+  try { await db.from('ideas').delete().eq('id', id); } catch { localStorage.setItem('ideas', JSON.stringify(ideas)); }
+  render();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => { if(!b.id) b.classList.remove('active'); });
+  btn.classList.add('active');
+  render();
+}
+
+function setSort(s, btn) {
+  currentSort = currentSort === s ? 'newest' : s;
+  btn.classList.toggle('active', currentSort === s);
+  render();
+}
+
+function timeAgo(ts) {
+  const d = Math.floor((Date.now()-new Date(ts))/86400000);
+  return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d}d ago`;
+}
+
+function render() {
+  const grid = document.getElementById('ideas-grid');
+  let filtered = currentFilter === 'all' ? [...ideas] : ideas.filter(i => i.cat === currentFilter);
+  if (currentSort === 'votes') filtered.sort((a,b) => (b.votes||0)-(a.votes||0));
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">✨</div><div class="empty-state-text">No ideas yet — add the first one above!</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(idea => {
+    const c = CAT[idea.cat] || CAT.misc;
+    const voted = myVotes.includes(idea.id);
+    return `
+    <div class="idea-card fade-up">
+      <div class="idea-cat-bar" style="background:${c.color}"></div>
+      <div class="idea-body">
+        <div class="idea-header">
+          <div class="idea-icon">${c.icon}</div>
+          <div class="idea-title">${idea.title}</div>
+        </div>
+        <div class="idea-location">📍 ${idea.location} · <span class="tag tag-stone" style="font-size:8px;padding:2px 6px;background:transparent;border:1px solid rgba(158,142,120,0.3);color:var(--stone);border-radius:3px">${c.label}</span></div>
+        ${idea.notes ? `<div class="idea-notes">${idea.notes}</div>` : ''}
+        ${idea.url   ? `<a class="idea-link" href="${idea.url}" target="_blank" rel="noopener">🔗 Open link</a>` : ''}
+      </div>
+      <div class="idea-footer">
+        <button class="vote-btn ${voted?'voted':''}" onclick="vote('${idea.id}')">
+          ${voted?'❤️':'🤍'} ${idea.votes||0} ${idea.votes===1?'vote':'votes'}
+        </button>
+        <div class="idea-added">by ${idea.added_by} · ${timeAgo(idea.created_at)}</div>
+        <button class="idea-del" onclick="deleteIdea('${idea.id}')" title="Remove">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+load();
+</script>
+</body>
+</html>

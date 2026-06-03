@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget — Italia 2026</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  .budget-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
+  .summary-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+  .summary-num { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 300; color: var(--terracotta); line-height: 1; }
+  .summary-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); margin-top: 5px; }
+  .summary-sub { font-size: 12px; color: var(--stone); margin-top: 2px; }
+
+  .expense-table { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 28px; }
+  .table-header { display: grid; grid-template-columns: 1fr 120px 100px 100px 80px; gap: 0; padding: 12px 20px; background: rgba(158,142,120,0.06); border-bottom: 1px solid rgba(158,142,120,0.12); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); }
+  .expense-row { display: grid; grid-template-columns: 1fr 120px 100px 100px 80px; gap: 0; padding: 14px 20px; border-bottom: 1px solid rgba(158,142,120,0.08); font-size: 13px; font-weight: 300; transition: background 0.15s; align-items: center; }
+  .expense-row:last-child { border-bottom: none; }
+  .expense-row:hover { background: rgba(196,103,58,0.03); }
+  .expense-desc { font-weight: 400; }
+  .expense-cat { font-size: 11px; color: var(--stone); }
+  .expense-amt { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--dark); }
+  .expense-who { }
+  .expense-del { text-align: right; }
+  .del-btn { background: none; border: none; cursor: pointer; color: var(--stone); font-size: 16px; opacity: 0; transition: opacity 0.15s, color 0.15s; }
+  .expense-row:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: #c0392b; }
+
+  .add-expense { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 24px 28px; box-shadow: var(--shadow); }
+  .add-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .fx-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 12px; color: var(--stone); }
+  .fx-rate { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--dark); cursor: pointer; border-bottom: 1px dashed var(--stone); }
+
+  .split-section { margin-top: 32px; }
+  .split-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 24px 28px; box-shadow: var(--shadow); }
+  .person-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(158,142,120,0.1); font-size: 14px; }
+  .person-row:last-child { border-bottom: none; }
+  .person-name { font-weight: 400; }
+  .person-total { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--terracotta); }
+  .person-share { font-size: 11px; color: var(--stone); margin-top: 2px; }
+
+  select { padding: 9px 12px; }
+
+  @media (max-width: 640px) {
+    .table-header, .expense-row { grid-template-columns: 1fr 80px 70px; }
+    .table-header > *:nth-child(3), .expense-row > *:nth-child(3),
+    .table-header > *:nth-child(5), .expense-row > *:nth-child(5) { display: none; }
+    .add-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<nav class="portal-nav">
+  <a class="nav-home" href="index.html">Italia ✦</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="planner.html">Itinerary</a>
+    <a class="nav-link" href="packing.html">Packing</a>
+    <a class="nav-link active" href="budget.html">Budget</a>
+    <a class="nav-link" href="ideas.html">Ideas</a>
+    <a class="nav-link" href="memories.html">Memories</a>
+    <a class="nav-link" href="chat.html">Chat</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-eyebrow">Italia 2026</div>
+    <div class="page-title">Budget <em>Tracker</em></div>
+    <div class="page-subtitle">Track costs · split by person · live total</div>
+  </div>
+</div>
+
+<div class="page-content">
+  <!-- Summary cards -->
+  <div class="budget-summary">
+    <div class="summary-card">
+      <div class="summary-num" id="total-aud">$0</div>
+      <div class="summary-label">Total (AUD)</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" id="total-eur">€0</div>
+      <div class="summary-label">Total (EUR)</div>
+      <div class="summary-sub" style="font-size:11px;color:var(--stone)" id="fx-display">Rate: 1 AUD = 0.60 EUR <span style="cursor:pointer;color:var(--terracotta)" onclick="editRate()">✎</span></div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" id="total-pp">$0</div>
+      <div class="summary-label">Per Person</div>
+      <div class="summary-sub" id="num-people-display">2 people</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" id="total-nights">$0</div>
+      <div class="summary-label">Per Night</div>
+      <div class="summary-sub">23 nights</div>
+    </div>
+  </div>
+
+  <!-- Expense table -->
+  <div class="section-label">Expenses</div>
+  <div class="expense-table">
+    <div class="table-header">
+      <div>Description</div>
+      <div>Category</div>
+      <div>Amount</div>
+      <div>Paid by</div>
+      <div></div>
+    </div>
+    <div id="expense-list">
+      <div class="loading"><div class="spinner"></div> Loading…</div>
+    </div>
+  </div>
+
+  <!-- Add expense -->
+  <div class="add-expense">
+    <div class="card-title">Add Expense</div>
+    <div class="add-grid">
+      <input type="text" id="exp-desc" placeholder="Description (e.g. Uffizi tickets)">
+      <select id="exp-cat">
+        <option value="flights">✈️ Flights</option>
+        <option value="accommodation">🏨 Accommodation</option>
+        <option value="transport">🚂 Transport</option>
+        <option value="food">🍝 Food & Dining</option>
+        <option value="activities">🎭 Activities</option>
+        <option value="shopping">🛍️ Shopping</option>
+        <option value="other">📦 Other</option>
+      </select>
+      <input type="number" id="exp-amt" placeholder="Amount (AUD)" min="0">
+      <select id="exp-who">
+        <option value="Both">Both</option>
+        <option value="Mum">Mum</option>
+        <option value="Dad">Dad</option>
+      </select>
+    </div>
+    <div style="margin-top:14px">
+      <button class="btn btn-primary" onclick="addExpense()">+ Add Expense</button>
+    </div>
+    <div class="fx-row">
+      AUD → EUR rate: <span class="fx-rate" id="fx-rate-display" onclick="editRate()">0.60</span>
+      <span style="font-size:11px">(click to update)</span>
+    </div>
+  </div>
+
+  <!-- Split summary -->
+  <div class="split-section">
+    <div class="section-label" style="margin-top:32px">Split Summary</div>
+    <div class="split-card">
+      <div id="split-list"><div style="color:var(--stone);font-size:13px">No expenses yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
+
+<script>
+const db = getSupabase();
+let expenses = [];
+let fxRate = parseFloat(localStorage.getItem('fx_rate') || '0.60');
+const NIGHTS = 23;
+
+const CAT_LABELS = { flights:'✈️ Flights', accommodation:'🏨 Accommodation', transport:'🚂 Transport', food:'🍝 Food', activities:'🎭 Activities', shopping:'🛍️ Shopping', other:'📦 Other' };
+
+async function load() {
+  try {
+    const { data, error } = await db.from('budget_expenses').select('*').order('created_at');
+    if (error) throw error;
+    expenses = data;
+  } catch {
+    expenses = JSON.parse(localStorage.getItem('budget_expenses') || '[]');
+  }
+  render();
+}
+
+async function addExpense() {
+  const description = document.getElementById('exp-desc').value.trim();
+  const amt  = parseFloat(document.getElementById('exp-amt').value) || 0;
+  const cat  = document.getElementById('exp-cat').value;
+  const who  = document.getElementById('exp-who').value;
+  if (!description || !amt) { showToast('Enter a description and amount'); return; }
+  const item = { id: crypto.randomUUID(), description, amt, cat, who, created_at: new Date().toISOString() };
+  expenses.push(item);
+  try { await db.from('budget_expenses').insert(item); } catch { localStorage.setItem('budget_expenses', JSON.stringify(expenses)); }
+  document.getElementById('exp-desc').value = '';
+  document.getElementById('exp-amt').value = '';
+  render(); showToast('Expense added');
+}
+
+async function deleteExpense(id) {
+  expenses = expenses.filter(e => e.id !== id);
+  try { await db.from('budget_expenses').delete().eq('id', id); } catch { localStorage.setItem('budget_expenses', JSON.stringify(expenses)); }
+  render();
+}
+
+function editRate() {
+  const r = prompt('Enter AUD → EUR exchange rate (e.g. 0.60):', fxRate);
+  if (r && !isNaN(r)) { fxRate = parseFloat(r); localStorage.setItem('fx_rate', fxRate); render(); }
+}
+
+function fmt(n) { return '$' + n.toLocaleString('en-AU', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function fmtE(n) { return '€' + (n*fxRate).toLocaleString('en-AU', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+
+function render() {
+  const total = expenses.reduce((s,e) => s + e.amt, 0);
+  const people = [...new Set(expenses.flatMap(e => e.who === 'Both' ? ['Mum','Dad'] : [e.who]))];
+  const numPeople = Math.max(2, people.length);
+
+  document.getElementById('total-aud').textContent = fmt(total);
+  document.getElementById('total-eur').textContent = fmtE(total);
+  document.getElementById('total-pp').textContent  = fmt(total / numPeople);
+  document.getElementById('total-nights').textContent = fmt(total / NIGHTS);
+  document.getElementById('fx-rate-display').textContent = fxRate.toFixed(2);
+  document.getElementById('fx-display').innerHTML = `Rate: 1 AUD = ${fxRate.toFixed(2)} EUR <span style="cursor:pointer;color:var(--terracotta)" onclick="editRate()">✎</span>`;
+  document.getElementById('num-people-display').textContent = `${numPeople} people`;
+
+  // Expense list
+  const list = document.getElementById('expense-list');
+  if (!expenses.length) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--stone);font-size:13px;font-style:italic">No expenses yet — add the first one below.</div>';
+  } else {
+    list.innerHTML = expenses.map(e => `
+      <div class="expense-row">
+        <div><div class="expense-desc">${e.description}</div><div class="expense-cat">${CAT_LABELS[e.cat]||e.cat}</div></div>
+        <div class="expense-cat">${CAT_LABELS[e.cat]||''}</div>
+        <div class="expense-amt">${fmt(e.amt)}<br><span style="font-size:12px;color:var(--stone)">${fmtE(e.amt)}</span></div>
+        <div style="font-size:13px;color:var(--stone)">${e.who}</div>
+        <div class="expense-del"><button class="del-btn" onclick="deleteExpense('${e.id}')">×</button></div>
+      </div>`).join('');
+  }
+
+  // Split
+  const byPerson = {};
+  expenses.forEach(e => {
+    const ps = e.who === 'Both' ? ['Mum','Dad'] : [e.who];
+    ps.forEach(p => { byPerson[p] = (byPerson[p]||0) + (e.who==='Both' ? e.amt/2 : e.amt); });
+  });
+  const splitEl = document.getElementById('split-list');
+  const entries = Object.entries(byPerson);
+  if (!entries.length) {
+    splitEl.innerHTML = '<div style="color:var(--stone);font-size:13px;font-style:italic">No expenses yet.</div>';
+  } else {
+    splitEl.innerHTML = entries.map(([name, amt]) => `
+      <div class="person-row">
+        <div><div class="person-name">${name}</div><div class="person-share">${((amt/total)*100).toFixed(0)}% of total</div></div>
+        <div style="text-align:right"><div class="person-total">${fmt(amt)}</div><div style="font-size:12px;color:var(--stone)">${fmtE(amt)}</div></div>
+      </div>`).join('');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+load();
+</script>
+</body>
+</html>
