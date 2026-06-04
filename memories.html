@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Memories — Italia 2026</title>
 <link rel="stylesheet" href="shared.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+
+
 <style>
   .memories-grid { columns: 3 280px; gap: 16px; }
   .memory-card { break-inside: avoid; background: var(--white); border: 1px solid rgba(158,142,120,0.14); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 16px; transition: transform 0.2s; }
@@ -29,6 +29,8 @@
 
   @media (max-width: 640px) { .form-row2 { grid-template-columns: 1fr; } }
 </style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <nav class="portal-nav">
@@ -90,7 +92,11 @@
 <footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
 
 <script>
-const db = getSupabase();
+let db;
+window.addEventListener("load", function() {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  init();
+});
 let memories = [];
 let selectedEmoji = '🌅';
 
@@ -178,7 +184,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-load();
+function init() { load(); }
 </script>
 </body>
 </html>

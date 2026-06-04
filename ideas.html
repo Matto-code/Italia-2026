@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ideas Board — Italia 2026</title>
 <link rel="stylesheet" href="shared.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+
+
 <style>
   .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
   .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(158,142,120,0.3); background: transparent; font-family: 'Jost',sans-serif; font-size: 11px; letter-spacing: 1px; cursor: pointer; color: var(--stone); transition: all 0.15s; }
@@ -42,6 +42,8 @@
 
   @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } }
 </style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <nav class="portal-nav">
@@ -119,7 +121,11 @@
 <footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
 
 <script>
-const db = getSupabase();
+let db;
+window.addEventListener("load", function() {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  init();
+});
 let ideas = [];
 let currentFilter = 'all';
 let currentSort = 'newest';
@@ -243,7 +249,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-load();
+function init() { load(); }
 </script>
 </body>
 </html>

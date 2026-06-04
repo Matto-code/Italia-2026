@@ -245,3 +245,43 @@
 </script>
 </body>
 </html>
+<script>
+  // Auto-hide setup banner once Supabase credentials are configured & working
+  (async function() {
+    const banner = document.getElementById('setup-banner');
+    if (!banner) return;
+
+    // Keep hidden if user already dismissed it
+    if (localStorage.getItem('banner_dismissed')) {
+      banner.style.display = 'none';
+      return;
+    }
+
+    try {
+      const res = await fetch('config.js');
+      const text = await res.text();
+      if (!text.includes('YOUR_SUPABASE_URL')) {
+        const urlMatch = text.match(/SUPABASE_URL\s*=\s*['"]([^'"]+)['"]/);
+        const keyMatch = text.match(/SUPABASE_KEY\s*=\s*['"]([^'"]+)['"]/);
+        if (urlMatch && keyMatch) {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
+          s.onload = async () => {
+            try {
+              const client = supabase.createClient(urlMatch[1], keyMatch[1]);
+              const { error } = await client.from('packing_items').select('id').limit(1);
+              if (!error) banner.style.display = 'none';
+            } catch {}
+          };
+          document.head.appendChild(s);
+        }
+      }
+    } catch {}
+
+    // Wire up dismiss button to remember choice
+    document.getElementById('hide-banner').addEventListener('click', function() {
+      banner.style.display = 'none';
+      localStorage.setItem('banner_dismissed', '1');
+    });
+  })();
+</script>

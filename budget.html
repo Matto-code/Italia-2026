@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Budget — Italia 2026</title>
 <link rel="stylesheet" href="shared.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+
+
 <style>
   .budget-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
   .summary-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
@@ -50,6 +50,8 @@
     .add-grid { grid-template-columns: 1fr 1fr; }
   }
 </style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <nav class="portal-nav">
@@ -155,7 +157,11 @@
 <footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
 
 <script>
-const db = getSupabase();
+let db;
+window.addEventListener("load", function() {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  init();
+});
 let expenses = [];
 let fxRate = parseFloat(localStorage.getItem('fx_rate') || '0.60');
 const NIGHTS = 23;
@@ -254,7 +260,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-load();
+function init() { load(); }
 </script>
 </body>
 </html>

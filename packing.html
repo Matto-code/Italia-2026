@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Packing Lists — Italia 2026</title>
 <link rel="stylesheet" href="shared.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+
+
 <style>
   .categories { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
   .cat-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
@@ -35,6 +35,8 @@
   .who-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(158,142,120,0.3); background: transparent; font-family: 'Jost',sans-serif; font-size: 11px; letter-spacing: 1px; cursor: pointer; color: var(--stone); transition: all 0.15s; }
   .who-btn.active { background: var(--terracotta); border-color: var(--terracotta); color: white; }
 </style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <nav class="portal-nav">
@@ -75,7 +77,11 @@
 <footer class="portal-footer">La Dolce Vita · Italia 2026</footer>
 
 <script>
-const db = getSupabase();
+let db;
+window.addEventListener("load", function() {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  init();
+});
 let items = [];
 let currentWho = 'all';
 
@@ -201,7 +207,7 @@ function showToast(msg) {
 try {
 } catch {}
 
-loadItems();
+function init() { loadItems(); }
 </script>
 </body>
 </html>
