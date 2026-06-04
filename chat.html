@@ -129,41 +129,44 @@
 
 <script>
 let db;
-window.addEventListener("load", function() {
-  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  init();
-});
 let messages = [];
 let myName = localStorage.getItem('chat_name') || '';
 let myReactions = JSON.parse(localStorage.getItem('chat_reactions') || '{}');
 
-// Set up quick emoji buttons
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', function() {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Set up quick emoji buttons
   const qe = document.querySelector('.emoji-quick');
-  qe.innerHTML = ['🎉','😍','🤌','🍕','🙌','😂','🏛️','🍷','✅','❤️','🤩','👌']
+  if (qe) qe.innerHTML = ['🎉','😍','🤌','🍕','🙌','😂','🏛️','🍷','✅','❤️','🤩','👌']
     .map(e => `<span class="eq-btn" onclick="reactLatest('${e}')">${e}</span>`).join('');
 
-  // Restore name
+  // Restore saved name
   if (myName) {
     document.querySelectorAll('.name-btn').forEach(b => {
       if (b.textContent === myName) b.classList.add('active');
     });
   }
+
+  load();
+  setInterval(load, 15000);
 });
 
 function setName(name, btn) {
-  myName = name; localStorage.setItem('chat_name', name);
+  myName = name;
+  localStorage.setItem('chat_name', name);
   document.querySelectorAll('.name-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  showToast(`Chatting as ${name}`);
+  showToast('Chatting as ' + name);
 }
 
 function setCustomName() {
   const n = prompt('Enter your name:');
   if (n && n.trim()) {
-    myName = n.trim(); localStorage.setItem('chat_name', myName);
+    myName = n.trim();
+    localStorage.setItem('chat_name', myName);
     document.querySelectorAll('.name-btn').forEach(b => b.classList.remove('active'));
-    showToast(`Chatting as ${myName}`);
+    showToast('Chatting as ' + myName);
   }
 }
 
@@ -186,14 +189,20 @@ async function sendMessage() {
   if (!myName) { showToast('Pick your name first!'); return; }
   const msg = {
     id: crypto.randomUUID(),
-    text, author: myName, reactions: {},
+    text,
+    author: myName,
+    reactions: {},
     created_at: new Date().toISOString(),
   };
   messages.push(msg);
   input.value = '';
-  input.style.height = '';
-  try { await db.from('chat_messages').insert(msg); } catch { localStorage.setItem('chat_messages', JSON.stringify(messages)); }
-  render(); scrollBottom();
+  try {
+    await db.from('chat_messages').insert(msg);
+  } catch {
+    localStorage.setItem('chat_messages', JSON.stringify(messages));
+  }
+  render();
+  scrollBottom();
 }
 
 function handleKey(e) {
@@ -206,49 +215,64 @@ async function addReaction(msgId, emoji) {
   const key = msgId + emoji;
   const reacted = myReactions[key];
   if (!msg.reactions) msg.reactions = {};
-  if (reacted) { msg.reactions[emoji] = Math.max(0,(msg.reactions[emoji]||1)-1); delete myReactions[key]; }
-  else          { msg.reactions[emoji] = (msg.reactions[emoji]||0)+1; myReactions[key] = true; }
+  if (reacted) {
+    msg.reactions[emoji] = Math.max(0, (msg.reactions[emoji] || 1) - 1);
+    delete myReactions[key];
+  } else {
+    msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1;
+    myReactions[key] = true;
+  }
   localStorage.setItem('chat_reactions', JSON.stringify(myReactions));
-  try { await db.from('chat_messages').update({ reactions: msg.reactions }).eq('id', msgId); }
-  catch { localStorage.setItem('chat_messages', JSON.stringify(messages)); }
+  try {
+    await db.from('chat_messages').update({ reactions: msg.reactions }).eq('id', msgId);
+  } catch {
+    localStorage.setItem('chat_messages', JSON.stringify(messages));
+  }
   render();
 }
 
 function reactLatest(emoji) {
   if (!messages.length) return;
-  addReaction(messages[messages.length-1].id, emoji);
+  addReaction(messages[messages.length - 1].id, emoji);
+}
+
+function promptReaction(msgId) {
+  const emoji = prompt('Type or paste an emoji to react:');
+  if (emoji && emoji.trim()) addReaction(msgId, emoji.trim());
 }
 
 function timeStr(ts) {
   const d = new Date(ts);
-  const now = new Date();
-  const diff = Math.floor((now-d)/86400000);
-  const time = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const diff = Math.floor((Date.now() - d) / 86400000);
+  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   if (diff === 0) return time;
-  if (diff === 1) return `Yesterday ${time}`;
-  return `${d.toLocaleDateString()} ${time}`;
+  if (diff === 1) return 'Yesterday ' + time;
+  return d.toLocaleDateString() + ' ' + time;
 }
 
 function render() {
   const container = document.getElementById('chat-messages');
+  const countEl = document.getElementById('msg-count');
   if (!messages.length) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-text">No messages yet — say ciao!</div></div>`;
-    document.getElementById('msg-count').textContent = '0';
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-text">No messages yet — say ciao!</div></div>';
+    if (countEl) countEl.textContent = '0';
     return;
   }
-  document.getElementById('msg-count').textContent = messages.length;
+  if (countEl) countEl.textContent = messages.length;
 
   container.innerHTML = messages.map(msg => {
     const isMe = msg.author === myName;
     const reactions = msg.reactions || {};
-    const reactionHtml = Object.entries(reactions).filter(([,n])=>n>0).map(([e,n]) => {
-      const reacted = myReactions[msg.id+e];
-      return `<span class="reaction ${reacted?'reacted':''}" onclick="addReaction('${msg.id}','${e}')" title="React">${e} ${n}</span>`;
-    }).join('');
+    const reactionHtml = Object.entries(reactions)
+      .filter(([, n]) => n > 0)
+      .map(([e, n]) => {
+        const reacted = myReactions[msg.id + e];
+        return `<span class="reaction ${reacted ? 'reacted' : ''}" onclick="addReaction('${msg.id}','${e}')">${e} ${n}</span>`;
+      }).join('');
 
     return `
-    <div class="msg ${isMe?'mine':'theirs'}">
-      <div class="msg-bubble">${msg.text.replace(/\n/g,'<br>')}</div>
+    <div class="msg ${isMe ? 'mine' : 'theirs'}">
+      <div class="msg-bubble">${msg.text.replace(/\n/g, '<br>')}</div>
       <div class="msg-meta">
         <span class="msg-author">${msg.author}</span>
         <span>${timeStr(msg.created_at)}</span>
@@ -261,35 +285,17 @@ function render() {
   }).join('');
 }
 
-function promptReaction(msgId) {
-  const emoji = prompt('Type or paste an emoji to react:');
-  if (emoji && emoji.trim()) addReaction(msgId, emoji.trim());
-}
-
 function scrollBottom() {
   const c = document.getElementById('chat-messages');
-  setTimeout(() => c.scrollTop = c.scrollHeight, 50);
+  if (c) setTimeout(() => c.scrollTop = c.scrollHeight, 50);
 }
 
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+  t.textContent = msg;
+  t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
-
-// Realtime
-try {
-    if (!messages.find(m => m.id === payload.new.id)) {
-      messages.push(payload.new); render(); scrollBottom();
-    }
-    const i = messages.findIndex(m => m.id === payload.new.id);
-    if (i > -1) { messages[i] = payload.new; render(); }
-  }).subscribe();
-} catch {}
-
-function init() { load(); }
-// Poll for new messages every 15 seconds
-setInterval(load, 15000);
 </script>
 </body>
 </html>
