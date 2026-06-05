@@ -5,38 +5,110 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Packing Lists — Italia 2026</title>
 <link rel="stylesheet" href="shared.css">
-
-
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
-  .categories { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-  .cat-card { background: var(--white); border: 1px solid rgba(158,142,120,0.15); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-  .cat-header { padding: 16px 20px 12px; border-bottom: 1px solid rgba(158,142,120,0.1); display: flex; align-items: center; justify-content: space-between; }
-  .cat-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; display: flex; align-items: center; gap: 8px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .person-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px;
+  }
+  .person-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif; font-size: 16px;
+    color: white; flex-shrink: 0;
+  }
+  .av-mum { background: var(--terracotta); }
+  .av-dad { background: var(--olive); }
+  .av-lc  { background: #7B6FA0; }
+  .av-wc  { background: #4A7C8E; }
+  .av-shared { background: var(--gold); }
+  .av-all { background: var(--midnight); }
+
+  .person-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 400;
+  }
+  .person-progress {
+    font-size: 11px; color: var(--stone); letter-spacing: 1px; margin-top: 2px;
+  }
+
+  .categories { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+
+  .cat-card {
+    background: var(--white);
+    border: 1px solid rgba(158,142,120,0.12);
+    border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .progress-bar { height: 3px; background: rgba(158,142,120,0.1); }
+  .progress-fill { height: 100%; background: var(--olive); transition: width 0.4s; }
+  .cat-header {
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid rgba(158,142,120,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cat-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 19px; font-weight: 400;
+    display: flex; align-items: center; gap: 8px;
+  }
   .cat-count { font-size: 11px; color: var(--stone); letter-spacing: 1px; }
-  .cat-items { padding: 8px 0; min-height: 60px; }
-  .pack-item { display: flex; align-items: center; gap: 10px; padding: 8px 20px; font-size: 13px; font-weight: 300; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(158,142,120,0.07); }
+  .cat-items { padding: 4px 0; min-height: 40px; }
+
+  .pack-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 18px; font-size: 13px; font-weight: 300;
+    cursor: pointer; transition: background 0.15s;
+    border-bottom: 1px solid rgba(158,142,120,0.06);
+  }
   .pack-item:last-child { border-bottom: none; }
-  .pack-item:hover { background: rgba(196,103,58,0.04); }
-  .pack-cb { width: 16px; height: 16px; border: 1.5px solid var(--stone); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .pack-item:hover { background: rgba(196,103,58,0.03); }
+  .pack-cb {
+    width: 16px; height: 16px;
+    border: 1.5px solid rgba(158,142,120,0.4);
+    border-radius: 3px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
   .pack-item.checked .pack-cb { background: var(--olive); border-color: var(--olive); }
   .pack-item.checked .pack-cb::after { content: '✓'; font-size: 10px; color: white; }
   .pack-item.checked .pack-label { color: var(--stone); text-decoration: line-through; }
   .pack-label { flex: 1; }
-  .pack-del { opacity: 0; background: none; border: none; cursor: pointer; color: var(--stone); font-size: 16px; transition: opacity 0.15s, color 0.15s; padding: 0 2px; }
+  .pack-del {
+    opacity: 0; background: none; border: none; cursor: pointer;
+    color: var(--stone); font-size: 16px; transition: opacity 0.15s, color 0.15s;
+    padding: 0 2px; line-height: 1;
+  }
   .pack-item:hover .pack-del { opacity: 1; }
   .pack-del:hover { color: #c0392b; }
-  .cat-add { padding: 10px 20px; display: flex; gap: 8px; border-top: 1px solid rgba(158,142,120,0.1); }
-  .cat-add input { flex: 1; padding: 7px 10px; font-size: 12px; border-radius: 5px; }
-  .cat-add button { background: none; border: 1px solid rgba(158,142,120,0.3); border-radius: 5px; padding: 7px 12px; cursor: pointer; color: var(--stone); font-size: 16px; transition: all 0.15s; }
+
+  .cat-add {
+    padding: 8px 18px; display: flex; gap: 8px;
+    border-top: 1px solid rgba(158,142,120,0.08);
+  }
+  .cat-add input { flex: 1; padding: 6px 10px; font-size: 12px; border-radius: 5px; }
+  .cat-add button {
+    background: none; border: 1px solid rgba(158,142,120,0.25);
+    border-radius: 5px; padding: 6px 12px; cursor: pointer;
+    color: var(--stone); font-size: 16px; transition: all 0.15s;
+  }
   .cat-add button:hover { border-color: var(--terracotta); color: var(--terracotta); }
-  .progress-bar { height: 3px; background: rgba(158,142,120,0.15); }
-  .progress-fill { height: 100%; background: var(--olive); transition: width 0.4s; }
-  .who-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-  .who-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(158,142,120,0.3); background: transparent; font-family: 'Jost',sans-serif; font-size: 11px; letter-spacing: 1px; cursor: pointer; color: var(--stone); transition: all 0.15s; }
-  .who-btn.active { background: var(--terracotta); border-color: var(--terracotta); color: white; }
+
+  /* Everyone view — show who owns each item */
+  .pack-owner {
+    font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 3px; color: white; flex-shrink: 0;
+  }
+  .own-mum { background: var(--terracotta); }
+  .own-dad { background: var(--olive); }
+  .own-lc  { background: #7B6FA0; }
+  .own-wc  { background: #4A7C8E; }
+  .own-shared { background: var(--gold); color: var(--dark); }
 </style>
-<script src="config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <nav class="portal-nav">
@@ -56,20 +128,73 @@
   <div class="page-header-inner">
     <div class="page-eyebrow">Italia 2026</div>
     <div class="page-title">Packing <em>Lists</em></div>
-    <div class="page-subtitle">Shared · tick as you go · syncs for everyone</div>
+    <div class="page-subtitle">Mum · Dad · LC · WC · Shared · Everyone</div>
   </div>
 </div>
 
 <div class="page-content">
-  <div class="who-filter" id="who-filter">
-    <button class="who-btn active" onclick="filterWho('all', this)">Everyone</button>
-    <button class="who-btn" onclick="filterWho('shared', this)">Shared</button>
-    <button class="who-btn" onclick="filterWho('Mum', this)">Mum</button>
-    <button class="who-btn" onclick="filterWho('Dad', this)">Dad</button>
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('mum',this)">Mum</button>
+    <button class="tab-btn" onclick="switchTab('dad',this)">Dad</button>
+    <button class="tab-btn" onclick="switchTab('lc',this)">LC</button>
+    <button class="tab-btn" onclick="switchTab('wc',this)">WC</button>
+    <button class="tab-btn" onclick="switchTab('shared',this)">Shared</button>
+    <button class="tab-btn" onclick="switchTab('all',this)">Everyone</button>
   </div>
 
-  <div class="categories" id="categories-grid">
-    <div class="loading"><div class="spinner"></div> Loading lists…</div>
+  <!-- MUM -->
+  <div class="tab-panel active" id="panel-mum">
+    <div class="person-header">
+      <div class="person-avatar av-mum">Mum</div>
+      <div><div class="person-name">Mum's List</div><div class="person-progress" id="prog-mum">Loading…</div></div>
+    </div>
+    <div class="categories" id="cats-mum"></div>
+  </div>
+
+  <!-- DAD -->
+  <div class="tab-panel" id="panel-dad">
+    <div class="person-header">
+      <div class="person-avatar av-dad">Dad</div>
+      <div><div class="person-name">Dad's List</div><div class="person-progress" id="prog-dad">Loading…</div></div>
+    </div>
+    <div class="categories" id="cats-dad"></div>
+  </div>
+
+  <!-- LC -->
+  <div class="tab-panel" id="panel-lc">
+    <div class="person-header">
+      <div class="person-avatar av-lc">LC</div>
+      <div><div class="person-name">LC's List</div><div class="person-progress" id="prog-lc">Loading…</div></div>
+    </div>
+    <div class="categories" id="cats-lc"></div>
+  </div>
+
+  <!-- WC -->
+  <div class="tab-panel" id="panel-wc">
+    <div class="person-header">
+      <div class="person-avatar av-wc">WC</div>
+      <div><div class="person-name">WC's List</div><div class="person-progress" id="prog-wc">Loading…</div></div>
+    </div>
+    <div class="categories" id="cats-wc"></div>
+  </div>
+
+  <!-- SHARED -->
+  <div class="tab-panel" id="panel-shared">
+    <div class="person-header">
+      <div class="person-avatar av-shared" style="color:var(--dark)">All</div>
+      <div><div class="person-name">Shared Items</div><div class="person-progress" id="prog-shared">Loading…</div></div>
+    </div>
+    <div class="categories" id="cats-shared"></div>
+  </div>
+
+  <!-- EVERYONE -->
+  <div class="tab-panel" id="panel-all">
+    <div class="person-header">
+      <div class="person-avatar av-all">✦</div>
+      <div><div class="person-name">Everyone</div><div class="person-progress" id="prog-all">Loading…</div></div>
+    </div>
+    <div id="cats-all"></div>
   </div>
 </div>
 
@@ -78,123 +203,213 @@
 
 <script>
 let db;
-window.addEventListener("load", function() {
+let items = [];
+const PEOPLE = ['mum','dad','lc','wc','shared'];
+const PERSON_LABELS = { mum:'Mum', dad:'Dad', lc:'LC', wc:'WC', shared:'Shared' };
+
+const CATEGORIES = [
+  { id:'documents', icon:'📄', label:'Documents' },
+  { id:'clothes',   icon:'👗', label:'Clothes'   },
+  { id:'toiletries',icon:'🧴', label:'Toiletries' },
+  { id:'tech',      icon:'🔌', label:'Tech'       },
+  { id:'daypack',   icon:'🎒', label:'Day Pack'   },
+  { id:'misc',      icon:'✨', label:'Other'      },
+];
+
+const DEFAULTS = {
+  mum: {
+    documents:  ['Passport','Travel insurance','Flight printouts','Credit card'],
+    clothes:    ['Dresses x 5','Swimwear x 2','Comfortable walking shoes','Sandals','Cardigan','Sunhat','Underwear x 10'],
+    toiletries: ['Sunscreen SPF50+','Skincare routine','Makeup essentials','Shampoo','Deodorant','Medications'],
+    tech:       ['Phone & charger','Camera','Power bank'],
+    daypack:    ['Day bag','Sunglasses','Reusable water bottle'],
+    misc:       ['Euros (cash)','Travel journal'],
+  },
+  dad: {
+    documents:  ['Passport','Travel insurance','Flight printouts','Driver\'s licence'],
+    clothes:    ['Shirts x 6','Shorts x 3','Smart trousers','Walking shoes','Thongs','Underwear x 10','Socks x 10'],
+    toiletries: ['Sunscreen SPF50+','Shaving kit','Deodorant','Medications'],
+    tech:       ['Phone & charger','Universal adapter','Power bank','Earphones'],
+    daypack:    ['Day bag','Sunglasses','Water bottle'],
+    misc:       ['Euros (cash)','Maps.me offline'],
+  },
+  lc: {
+    documents:  ['Passport','Travel insurance'],
+    clothes:    ['Outfits x 7','Swimwear','Sneakers','Thongs','Underwear x 10'],
+    toiletries: ['Sunscreen','Shampoo','Deodorant','Skincare'],
+    tech:       ['Phone & charger','Earphones','Power bank'],
+    daypack:    ['Backpack','Sunglasses','Water bottle'],
+    misc:       ['Euros (spending money)'],
+  },
+  wc: {
+    documents:  ['Passport','Travel insurance'],
+    clothes:    ['Outfits x 7','Swimwear','Sneakers','Thongs','Underwear x 10'],
+    toiletries: ['Sunscreen','Shampoo','Deodorant','Skincare'],
+    tech:       ['Phone & charger','Earphones','Power bank'],
+    daypack:    ['Backpack','Sunglasses','Water bottle'],
+    misc:       ['Euros (spending money)'],
+  },
+  shared: {
+    documents:  ['Travel clothesline','Laundry tabs','Family first aid kit'],
+    clothes:    [],
+    toiletries: ['Insect repellent','Pain relief','Antiseptic wipes'],
+    tech:       ['Universal travel adapter x 2','Portable WiFi (optional)'],
+    daypack:    ['Snacks for travel days','Pocket tissues','Umbrella'],
+    misc:       ['Google Translate offline','Supabase working 🎉'],
+  },
+};
+
+window.addEventListener('load', function() {
   db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   init();
 });
-let items = [];
-let currentWho = 'all';
 
-const DEFAULT_CATEGORIES = [
-  { id: 'documents', icon: '📄', label: 'Documents', defaults: ['Passports','Travel insurance docs','Flight confirmations','Hotel bookings','Driver\'s licence','European Health Card','Emergency contacts'] },
-  { id: 'clothes',   icon: '👗', label: 'Clothes',   defaults: ['Light summer dresses/shirts','Comfortable walking shoes','Smart dinner outfit','Swimwear','Light cardigan/jacket','Sunhat','Underwear x 10','Socks x 10'] },
-  { id: 'toiletries',icon: '🧴', label: 'Toiletries',defaults: ['Sunscreen SPF50+','Insect repellent','Shampoo & conditioner','Toothbrush & toothpaste','Deodorant','Prescription medications','Pain relief','Lip balm'] },
-  { id: 'tech',      icon: '🔌', label: 'Tech',      defaults: ['Phone & charger','Universal travel adapter','Camera','Portable power bank','Earphones/headphones','Kindle/tablet'] },
-  { id: 'daypack',   icon: '🎒', label: 'Day Pack',  defaults: ['Reusable water bottle','Small day bag','Travel umbrella','Sunglasses','Snacks for travel days','Pocket tissues'] },
-  { id: 'misc',      icon: '✨', label: 'Miscellaneous', defaults: ['Euros (cash)','Credit/debit cards','Google Translate offline','Maps.me offline maps','Travel clothesline','Laundry tabs'] },
-];
-
-async function loadItems() {
+async function init() {
   try {
     const { data, error } = await db.from('packing_items').select('*').order('created_at');
     if (error) throw error;
     items = data;
-    render();
-  } catch(e) {
-    // Fallback to local if Supabase not configured
+    if (!items.length) seedDefaults();
+    else renderAll();
+  } catch {
     items = JSON.parse(localStorage.getItem('packing_items') || '[]');
     if (!items.length) seedDefaults();
-    else render();
+    else renderAll();
   }
 }
 
 function seedDefaults() {
-  items = DEFAULT_CATEGORIES.flatMap(cat =>
-    cat.defaults.map((label, i) => ({
-      id: `${cat.id}_${i}`, category: cat.id, label,
-      checked: false, who: 'shared', created_at: new Date().toISOString()
-    }))
-  );
-  saveLocal(); render();
+  items = [];
+  PEOPLE.forEach(who => {
+    CATEGORIES.forEach(cat => {
+      (DEFAULTS[who][cat.id] || []).forEach(label => {
+        items.push({ id: crypto.randomUUID(), category: cat.id, label, checked: false, who, created_at: new Date().toISOString() });
+      });
+    });
+  });
+  saveLocal(); renderAll();
 }
 
 function saveLocal() { localStorage.setItem('packing_items', JSON.stringify(items)); }
+
+function switchTab(who, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + who).classList.add('active');
+}
 
 async function toggleItem(id) {
   const item = items.find(i => i.id === id);
   if (!item) return;
   item.checked = !item.checked;
-  try {
-    await db.from('packing_items').update({ checked: item.checked }).eq('id', id);
-  } catch { saveLocal(); }
-  render(); showToast(item.checked ? '✓ Packed!' : 'Unpacked');
+  try { await db.from('packing_items').update({ checked: item.checked }).eq('id', id); }
+  catch { saveLocal(); }
+  renderAll();
+  showToast(item.checked ? '✓ Packed!' : 'Unpacked');
 }
 
-async function addItem(category, label) {
+async function addItem(who, catId, label) {
   if (!label.trim()) return;
-  const item = { id: crypto.randomUUID(), category, label: label.trim(), checked: false, who: currentWho === 'all' ? 'shared' : currentWho, created_at: new Date().toISOString() };
+  const item = { id: crypto.randomUUID(), category: catId, label: label.trim(), checked: false, who, created_at: new Date().toISOString() };
   items.push(item);
-  try {
-    await db.from('packing_items').insert(item);
-  } catch { saveLocal(); }
-  render();
+  try { await db.from('packing_items').insert(item); }
+  catch { saveLocal(); }
+  renderAll();
 }
 
 async function deleteItem(id) {
   items = items.filter(i => i.id !== id);
-  try {
-    await db.from('packing_items').delete().eq('id', id);
-  } catch { saveLocal(); }
-  render();
+  try { await db.from('packing_items').delete().eq('id', id); }
+  catch { saveLocal(); }
+  renderAll();
 }
 
-function filterWho(who, btn) {
-  currentWho = who;
-  document.querySelectorAll('.who-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-}
+function renderPerson(who) {
+  const grid = document.getElementById('cats-' + who);
+  const progEl = document.getElementById('prog-' + who);
+  if (!grid) return;
 
-function filtered(catId) {
-  return items.filter(i => i.category === catId && (currentWho === 'all' || i.who === currentWho || i.who === 'shared'));
-}
+  const myItems = items.filter(i => i.who === who);
+  const checked = myItems.filter(i => i.checked).length;
+  if (progEl) progEl.textContent = `${checked} of ${myItems.length} packed`;
 
-function render() {
-  const grid = document.getElementById('categories-grid');
   grid.innerHTML = '';
-  DEFAULT_CATEGORIES.forEach(cat => {
-    const catItems = filtered(cat.id);
-    const checked = catItems.filter(i => i.checked).length;
-    const pct = catItems.length ? Math.round(checked/catItems.length*100) : 0;
+  CATEGORIES.forEach(cat => {
+    const catItems = myItems.filter(i => i.category === cat.id);
+    const catChecked = catItems.filter(i => i.checked).length;
+    const pct = catItems.length ? Math.round(catChecked / catItems.length * 100) : 0;
     const card = document.createElement('div');
-    card.className = 'cat-card fade-up';
+    card.className = 'cat-card';
     card.innerHTML = `
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
       <div class="cat-header">
         <div class="cat-title">${cat.icon} ${cat.label}</div>
-        <div class="cat-count">${checked}/${catItems.length}</div>
+        <div class="cat-count">${catChecked}/${catItems.length}</div>
       </div>
-      <div class="cat-items" id="items-${cat.id}">
-        ${catItems.length === 0 ? '<div style="padding:16px 20px;font-size:12px;color:var(--stone);font-style:italic">No items yet</div>' :
-          catItems.map(item => `
-            <div class="pack-item ${item.checked?'checked':''}" id="pi-${item.id}">
+      <div class="cat-items">
+        ${!catItems.length
+          ? '<div style="padding:12px 18px;font-size:12px;color:var(--stone);font-style:italic">Nothing yet</div>'
+          : catItems.map(item => `
+            <div class="pack-item ${item.checked ? 'checked' : ''}">
               <div class="pack-cb" onclick="toggleItem('${item.id}')"></div>
               <span class="pack-label" onclick="toggleItem('${item.id}')">${item.label}</span>
-              <button class="pack-del" onclick="deleteItem('${item.id}')" title="Remove">×</button>
+              <button class="pack-del" onclick="deleteItem('${item.id}')">×</button>
             </div>`).join('')}
       </div>
       <div class="cat-add">
-        <input type="text" placeholder="Add item…" id="add-${cat.id}" onkeydown="if(event.key==='Enter') submitAdd('${cat.id}')">
-        <button onclick="submitAdd('${cat.id}')">+</button>
+        <input type="text" placeholder="Add item…" id="add-${who}-${cat.id}" onkeydown="if(event.key==='Enter') submitAdd('${who}','${cat.id}')">
+        <button onclick="submitAdd('${who}','${cat.id}')">+</button>
       </div>`;
     grid.appendChild(card);
   });
 }
 
-function submitAdd(catId) {
-  const inp = document.getElementById('add-' + catId);
-  addItem(catId, inp.value);
-  inp.value = '';
+function renderAll() {
+  PEOPLE.forEach(renderPerson);
+  renderEveryone();
+}
+
+function renderEveryone() {
+  const grid = document.getElementById('cats-all');
+  const progEl = document.getElementById('prog-all');
+  if (!grid) return;
+  const total = items.length;
+  const checked = items.filter(i => i.checked).length;
+  if (progEl) progEl.textContent = `${checked} of ${total} packed across the family`;
+
+  const ownerColors = { mum:'own-mum', dad:'own-dad', lc:'own-lc', wc:'own-wc', shared:'own-shared' };
+  grid.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const catItems = items.filter(i => i.category === cat.id);
+    if (!catItems.length) return;
+    const catChecked = catItems.filter(i => i.checked).length;
+    const pct = Math.round(catChecked / catItems.length * 100);
+    const section = document.createElement('div');
+    section.style.marginBottom = '20px';
+    section.innerHTML = `
+      <div class="cat-card">
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="cat-header">
+          <div class="cat-title">${cat.icon} ${cat.label}</div>
+          <div class="cat-count">${catChecked}/${catItems.length}</div>
+        </div>
+        <div class="cat-items">
+          ${catItems.map(item => `
+            <div class="pack-item ${item.checked ? 'checked' : ''}">
+              <div class="pack-cb" onclick="toggleItem('${item.id}')"></div>
+              <span class="pack-label" onclick="toggleItem('${item.id}')">${item.label}</span>
+              <span class="pack-owner ${ownerColors[item.who] || ''}">${PERSON_LABELS[item.who] || item.who}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    grid.appendChild(section);
+  });
+}
+
+function submitAdd(who, catId) {
+  const inp = document.getElementById(`add-${who}-${catId}`);
+  if (inp) { addItem(who, catId, inp.value); inp.value = ''; }
 }
 
 function showToast(msg) {
@@ -202,12 +417,6 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
 }
-
-// Realtime sync
-try {
-} catch {}
-
-function init() { loadItems(); }
 </script>
 </body>
 </html>

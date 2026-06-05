@@ -25,6 +25,10 @@
   .idea-notes { font-size: 12px; font-weight: 300; color: var(--dark); line-height: 1.6; margin-bottom: 10px; }
   .idea-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--terracotta); text-decoration: none; letter-spacing: 0.5px; border-bottom: 1px solid rgba(196,103,58,0.3); padding-bottom: 1px; transition: border-color 0.15s; }
   .idea-link:hover { border-color: var(--terracotta); }
+  .insta-card { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); border-radius: 8px; padding: 10px 14px; margin-top: 8px; text-decoration: none; }
+  .insta-icon { font-size: 20px; flex-shrink: 0; }
+  .insta-text { color: white; font-size: 12px; font-weight: 300; }
+  .insta-text strong { display: block; font-size: 11px; letter-spacing: 1px; font-weight: 500; opacity: 0.85; }
   .idea-footer { padding: 10px 20px 14px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(158,142,120,0.08); }
   .vote-btn { display: flex; align-items: center; gap: 5px; background: none; border: 1px solid rgba(158,142,120,0.25); border-radius: 20px; padding: 5px 12px; cursor: pointer; font-family: 'Jost',sans-serif; font-size: 12px; color: var(--stone); transition: all 0.2s; }
   .vote-btn:hover, .vote-btn.voted { background: rgba(196,103,58,0.08); border-color: var(--terracotta); color: var(--terracotta); }
@@ -93,8 +97,8 @@
       </select>
     </div>
     <div class="form-row">
-      <input type="url" id="idea-url" placeholder="Link (optional) — paste a URL">
-      <input type="text" id="idea-added-by" placeholder="Your name (e.g. Mum)">
+      <input type="text" id="idea-url" placeholder="Link or Instagram URL (optional)">
+      <input type="text" id="idea-added-by" placeholder="Your name">
     </div>
     <textarea id="idea-notes" placeholder="Notes — opening hours, why you want to go, tips…" style="margin-bottom:14px;height:70px"></textarea>
     <button class="btn btn-primary" onclick="addIdea()">+ Add Idea</button>
@@ -202,6 +206,15 @@ function setSort(s, btn) {
   render();
 }
 
+function renderLink(url) {
+  const isInsta = url.includes("instagram.com");
+  if (isInsta) {
+    const slug = url.split("instagram.com/")[1] || url;
+    return `<a class="insta-card" href="${url}" target="_blank" rel="noopener"><span class="insta-icon">📷</span><div class="insta-text"><strong>Instagram</strong>${slug.replace(/\//g,"").substring(0,40)}</div></a>`;
+  }
+  return `<a class="idea-link" href="${url}" target="_blank" rel="noopener">🔗 Open link</a>`;
+}
+
 function timeAgo(ts) {
   const d = Math.floor((Date.now()-new Date(ts))/86400000);
   return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d}d ago`;
@@ -230,7 +243,7 @@ function render() {
         </div>
         <div class="idea-location">📍 ${idea.location} · <span class="tag tag-stone" style="font-size:8px;padding:2px 6px;background:transparent;border:1px solid rgba(158,142,120,0.3);color:var(--stone);border-radius:3px">${c.label}</span></div>
         ${idea.notes ? `<div class="idea-notes">${idea.notes}</div>` : ''}
-        ${idea.url   ? `<a class="idea-link" href="${idea.url}" target="_blank" rel="noopener">🔗 Open link</a>` : ''}
+        ${idea.url ? renderLink(idea.url) : ''}
       </div>
       <div class="idea-footer">
         <button class="vote-btn ${voted?'voted':''}" onclick="vote('${idea.id}')">

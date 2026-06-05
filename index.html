@@ -6,91 +6,142 @@
 <title>La Dolce Vita — Italia 2026 Family Portal</title>
 <link rel="stylesheet" href="shared.css">
 <style>
-  /* Hero */
+  /* HERO */
   .hero {
-    background: var(--midnight);
-    padding: 80px 40px 64px;
-    text-align: center;
     position: relative;
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     overflow: hidden;
+    padding: 80px 32px 60px;
   }
-  .hero::before {
+  .hero-bg {
+    position: absolute; inset: 0;
+    /* Replace 'images/hero.jpg' with your uploaded photo filename */
+    background-image: url('images/hero.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: var(--midnight);
+  }
+  .hero-bg::after {
     content: '';
     position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 120%, rgba(196,103,58,0.32) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(201,168,76,0.1) 0%, transparent 60%);
+    background: linear-gradient(
+      to bottom,
+      rgba(10,10,20,0.55) 0%,
+      rgba(10,10,20,0.35) 40%,
+      rgba(10,10,20,0.7)  80%,
+      rgba(10,10,20,0.92) 100%
+    );
   }
-  .hero > * { position: relative; }
+  .hero-content { position: relative; z-index: 2; }
+
   .hero-eyebrow {
-    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
-    color: var(--gold); margin-bottom: 18px;
-    opacity: 0; animation: fadeUp 0.7s 0.1s forwards;
+    font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 20px;
+    opacity: 0; animation: fadeUp 0.8s 0.1s forwards;
   }
   .hero h1 {
     font-family: 'Cormorant Garamond', serif;
-    font-weight: 300; font-size: clamp(56px, 10vw, 108px);
-    color: var(--sand); line-height: 0.95; letter-spacing: -2px;
-    opacity: 0; animation: fadeUp 0.7s 0.25s forwards;
+    font-weight: 300;
+    font-size: clamp(64px, 12vw, 130px);
+    color: white;
+    line-height: 0.92;
+    letter-spacing: -3px;
+    opacity: 0; animation: fadeUp 0.8s 0.25s forwards;
+    text-shadow: 0 4px 40px rgba(0,0,0,0.4);
   }
   .hero h1 em { font-style: italic; color: var(--terracotta); }
   .hero-sub {
-    font-size: 12px; font-weight: 200; letter-spacing: 3px;
-    text-transform: uppercase; color: var(--stone); margin-top: 20px;
-    opacity: 0; animation: fadeUp 0.7s 0.4s forwards;
+    font-size: 12px; font-weight: 200; letter-spacing: 4px;
+    text-transform: uppercase; color: rgba(242,232,217,0.7);
+    margin-top: 24px;
+    opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .hero-divider {
+    width: 40px; height: 1px;
+    background: var(--terracotta);
+    margin: 28px auto;
+    opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
   }
 
-  /* Countdown */
+  /* COUNTDOWN */
   .countdown-wrap {
-    margin-top: 44px;
-    opacity: 0; animation: fadeUp 0.7s 0.55s forwards;
+    opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
   }
   .countdown-label {
     font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--stone); margin-bottom: 12px;
+    color: rgba(158,142,120,0.7); margin-bottom: 14px;
   }
   .countdown {
     display: inline-flex;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px; overflow: hidden;
-    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; overflow: hidden;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
   }
   .cd-unit {
     display: flex; flex-direction: column; align-items: center;
-    padding: 14px 24px;
+    padding: 16px 28px;
   }
   .cd-unit + .cd-unit { border-left: 1px solid rgba(255,255,255,0.08); }
   .cd-num {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(32px, 5vw, 52px); font-weight: 300;
-    color: var(--sand); line-height: 1;
+    font-size: clamp(36px, 6vw, 58px); font-weight: 300;
+    color: white; line-height: 1;
   }
   .cd-unit:first-child .cd-num { color: var(--terracotta); }
-  .cd-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); margin-top: 5px; }
+  .cd-lbl {
+    font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(158,142,120,0.6); margin-top: 6px;
+  }
 
-  /* Feature grid */
+  /* SCROLL CUE */
+  .scroll-cue {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    z-index: 2; opacity: 0; animation: fadeIn 1s 1.2s forwards;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+  }
+  .scroll-cue::after {
+    content: '';
+    width: 1px; height: 32px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+  }
+
+  /* FEATURE GRID */
+  .features-section {
+    max-width: 960px; margin: 0 auto; padding: 64px 24px 80px;
+  }
+  .features-eyebrow {
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 32px; text-align: center;
+  }
   .features {
-    max-width: 960px; margin: 56px auto; padding: 0 24px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
   }
   .feature-card {
     background: var(--white);
-    border: 1px solid rgba(158,142,120,0.14);
+    border: 1px solid rgba(158,142,120,0.12);
     border-radius: 12px;
     padding: 28px;
     text-decoration: none;
     color: inherit;
     display: flex; flex-direction: column;
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
     box-shadow: var(--shadow);
     opacity: 0; animation: fadeUp 0.5s forwards;
   }
   .feature-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(196,103,58,0.12);
-    border-color: rgba(196,103,58,0.3);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(196,103,58,0.25);
   }
   .feature-card:nth-child(1) { animation-delay: 0.05s; }
   .feature-card:nth-child(2) { animation-delay: 0.10s; }
@@ -99,48 +150,65 @@
   .feature-card:nth-child(5) { animation-delay: 0.25s; }
   .feature-card:nth-child(6) { animation-delay: 0.30s; }
 
-  .feature-icon {
-    font-size: 28px; margin-bottom: 14px; line-height: 1;
-  }
+  .feature-icon { font-size: 30px; margin-bottom: 16px; }
   .feature-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 24px; font-weight: 400; color: var(--dark);
-    margin-bottom: 6px;
+    font-size: 26px; font-weight: 400; margin-bottom: 8px;
   }
   .feature-desc {
     font-size: 12px; font-weight: 300; color: var(--stone);
-    line-height: 1.6; flex: 1;
+    line-height: 1.7; flex: 1;
   }
   .feature-arrow {
-    margin-top: 18px; font-size: 11px; letter-spacing: 2px;
+    margin-top: 20px; font-size: 10px; letter-spacing: 2px;
     text-transform: uppercase; color: var(--terracotta);
     display: flex; align-items: center; gap: 6px;
+    transition: gap 0.2s;
   }
-  .feature-arrow::after { content: '→'; transition: transform 0.2s; }
-  .feature-card:hover .feature-arrow::after { transform: translateX(4px); }
+  .feature-arrow::after { content: '→'; }
+  .feature-card:hover .feature-arrow { gap: 10px; }
 
-  /* Setup banner */
-  .setup-banner {
-    max-width: 960px; margin: 0 auto 24px; padding: 0 24px;
-  }
+  /* SETUP BANNER */
+  .setup-banner { max-width: 960px; margin: -16px auto 0; padding: 0 24px 24px; }
   .setup-inner {
-    background: rgba(201,168,76,0.12);
-    border: 1px solid rgba(201,168,76,0.3);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
     border-radius: 10px;
-    padding: 16px 22px;
-    display: flex; align-items: center; gap: 14px;
-    font-size: 13px; font-weight: 300; color: var(--dark);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; font-weight: 300;
   }
-  .setup-inner a {
-    color: var(--terracotta); font-weight: 400; text-decoration: none;
-  }
+  .setup-inner a { color: var(--terracotta); font-weight: 400; text-decoration: none; }
   .setup-inner a:hover { text-decoration: underline; }
-  #hide-banner { background: none; border: none; cursor: pointer; color: var(--stone); font-size: 18px; margin-left: auto; flex-shrink: 0; }
+  #hide-banner { background: none; border: none; cursor: pointer; color: var(--stone); font-size: 20px; margin-left: auto; flex-shrink: 0; line-height: 1; }
+
+  /* FAMILY MEMBERS */
+  .family-bar {
+    max-width: 960px; margin: 0 auto; padding: 0 24px 48px;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .family-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--stone); }
+  .family-member {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 400;
+    color: white; letter-spacing: 0.5px;
+  }
+  .fm-mum { background: var(--terracotta); }
+  .fm-dad { background: var(--olive); }
+  .fm-lc  { background: #7B6FA0; }
+  .fm-wc  { background: #4A7C8E; }
+
+  @media (max-width: 640px) {
+    .cd-unit { padding: 12px 18px; }
+    .features-section { padding: 40px 16px 60px; }
+    .hero h1 { letter-spacing: -2px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav class="portal-nav">
   <a class="nav-home" href="index.html">Italia ✦</a>
   <div class="nav-links">
@@ -156,19 +224,24 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-eyebrow">Family Portal · Italia 2026</div>
-  <h1>La <em>Dolce</em><br>Vita</h1>
-  <div class="hero-sub">15 September — 7 October · 23 Nights · 5 Destinations</div>
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Family Portal · Italia 2026</div>
+    <h1>La <em>Dolce</em><br>Vita</h1>
+    <div class="hero-divider"></div>
+    <div class="hero-sub">15 September — 7 October · 23 Nights · 5 Destinations</div>
 
-  <div class="countdown-wrap">
-    <div class="countdown-label">Departure countdown</div>
-    <div class="countdown" id="countdown">
-      <div class="cd-unit"><div class="cd-num" id="cd-days">—</div><div class="cd-lbl">Days</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-hours">—</div><div class="cd-lbl">Hours</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-mins">—</div><div class="cd-lbl">Mins</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-secs">—</div><div class="cd-lbl">Secs</div></div>
+    <div class="countdown-wrap" style="margin-top:36px">
+      <div class="countdown-label">Departure countdown</div>
+      <div class="countdown" id="countdown">
+        <div class="cd-unit"><div class="cd-num" id="cd-days">—</div><div class="cd-lbl">Days</div></div>
+        <div class="cd-unit"><div class="cd-num" id="cd-hours">—</div><div class="cd-lbl">Hours</div></div>
+        <div class="cd-unit"><div class="cd-num" id="cd-mins">—</div><div class="cd-lbl">Mins</div></div>
+        <div class="cd-unit"><div class="cd-num" id="cd-secs">—</div><div class="cd-lbl">Secs</div></div>
+      </div>
     </div>
   </div>
+  <div class="scroll-cue">Explore</div>
 </div>
 
 <!-- SETUP BANNER -->
@@ -176,56 +249,63 @@
   <div class="setup-inner">
     <span>⚡</span>
     <span>Connect live sync — <a href="SETUP.md" target="_blank">follow the Supabase setup guide</a> to enable real-time collaboration across the family.</span>
-    <button id="hide-banner" onclick="document.getElementById('setup-banner').style.display='none'">×</button>
+    <button id="hide-banner">×</button>
   </div>
 </div>
 
-<!-- FEATURE GRID -->
-<div class="features">
-  <a class="feature-card" href="planner.html">
-    <div class="feature-icon">🗺️</div>
-    <div class="feature-title">Itinerary</div>
-    <div class="feature-desc">Day-by-day plan across Florence, Rome, Sardinia, Lucerne & Milan. Add notes to each day.</div>
-    <div class="feature-arrow">View planner</div>
-  </a>
-
-  <a class="feature-card" href="packing.html">
-    <div class="feature-icon">🧳</div>
-    <div class="feature-title">Packing Lists</div>
-    <div class="feature-desc">Shared lists by category — clothes, toiletries, documents, tech. Tick off as you pack.</div>
-    <div class="feature-arrow">Open lists</div>
-  </a>
-
-  <a class="feature-card" href="budget.html">
-    <div class="feature-icon">💶</div>
-    <div class="feature-title">Budget Tracker</div>
-    <div class="feature-desc">Track costs per person, split expenses, and see a live total in AUD and EUR.</div>
-    <div class="feature-arrow">View budget</div>
-  </a>
-
-  <a class="feature-card" href="ideas.html">
-    <div class="feature-icon">✨</div>
-    <div class="feature-title">Ideas Board</div>
-    <div class="feature-desc">Save restaurants, activities, and links with notes. Vote on favourites as a family.</div>
-    <div class="feature-arrow">Browse ideas</div>
-  </a>
-
-  <a class="feature-card" href="memories.html">
-    <div class="feature-icon">📸</div>
-    <div class="feature-title">Memories</div>
-    <div class="feature-desc">A shared wall to collect highlights, favourite moments, and photo captions during the trip.</div>
-    <div class="feature-arrow">Add memories</div>
-  </a>
-
-  <a class="feature-card" href="chat.html">
-    <div class="feature-icon">💬</div>
-    <div class="feature-title">Family Chat</div>
-    <div class="feature-desc">Leave messages, questions, and reactions. A running thread the whole family can see.</div>
-    <div class="feature-arrow">Open chat</div>
-  </a>
+<!-- FAMILY BAR -->
+<div class="family-bar">
+  <div class="family-label">Travelling together</div>
+  <div class="family-member fm-mum" title="Mum">Mum</div>
+  <div class="family-member fm-dad" title="Dad">Dad</div>
+  <div class="family-member fm-lc"  title="LC">LC</div>
+  <div class="family-member fm-wc"  title="WC">WC</div>
 </div>
 
-<footer class="portal-footer">La Dolce Vita · Italia 2026 · Family Portal</footer>
+<!-- FEATURES -->
+<div class="features-section">
+  <div class="features-eyebrow">Everything in one place</div>
+  <div class="features">
+    <a class="feature-card" href="planner.html">
+      <div class="feature-icon">🗺️</div>
+      <div class="feature-title">Itinerary</div>
+      <div class="feature-desc">Day-by-day across Florence, Rome, Sardinia, Lucerne & Milan. Add notes to each day.</div>
+      <div class="feature-arrow">View planner</div>
+    </a>
+    <a class="feature-card" href="packing.html">
+      <div class="feature-icon">🧳</div>
+      <div class="feature-title">Packing Lists</div>
+      <div class="feature-desc">Individual lists for Mum, Dad, LC & WC — plus shared items. Tick off as you pack.</div>
+      <div class="feature-arrow">Open lists</div>
+    </a>
+    <a class="feature-card" href="budget.html">
+      <div class="feature-icon">💶</div>
+      <div class="feature-title">Budget Tracker</div>
+      <div class="feature-desc">Track costs, split expenses between the family, and see totals in AUD and EUR.</div>
+      <div class="feature-arrow">View budget</div>
+    </a>
+    <a class="feature-card" href="ideas.html">
+      <div class="feature-icon">✨</div>
+      <div class="feature-title">Ideas Board</div>
+      <div class="feature-desc">Save restaurants, activities and Instagram links with notes. Vote on favourites.</div>
+      <div class="feature-arrow">Browse ideas</div>
+    </a>
+    <a class="feature-card" href="memories.html">
+      <div class="feature-icon">📸</div>
+      <div class="feature-title">Memories</div>
+      <div class="feature-desc">A shared wall to capture highlights and favourite moments during the trip.</div>
+      <div class="feature-arrow">Add memories</div>
+    </a>
+    <a class="feature-card" href="chat.html">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Family Chat</div>
+      <div class="feature-desc">Messages, questions and reactions — a running thread the whole family can see.</div>
+      <div class="feature-arrow">Open chat</div>
+    </a>
+  </div>
+</div>
+
+<footer class="portal-footer">La Dolce Vita · Italia 2026 · The whole family</footer>
 
 <script>
   // Countdown
@@ -234,7 +314,11 @@
     function pad(n) { return String(n).padStart(2,'0'); }
     function tick() {
       const diff = target - new Date();
-      if (diff <= 0) { document.getElementById('countdown').innerHTML = '<div style="padding:16px 28px;font-family:Cormorant Garamond,serif;font-style:italic;color:#C9A84C;font-size:22px">Buon viaggio! 🇮🇹</div>'; return; }
+      if (diff <= 0) {
+        document.getElementById('countdown').innerHTML =
+          '<div style="padding:16px 28px;font-family:Cormorant Garamond,serif;font-style:italic;color:#C9A84C;font-size:22px">Buon viaggio! 🇮🇹</div>';
+        return;
+      }
       document.getElementById('cd-days').textContent  = Math.floor(diff/86400000);
       document.getElementById('cd-hours').textContent = pad(Math.floor(diff%86400000/3600000));
       document.getElementById('cd-mins').textContent  = pad(Math.floor(diff%3600000/60000));
@@ -242,46 +326,15 @@
     }
     tick(); setInterval(tick, 1000);
   })();
+
+  // Banner dismiss
+  document.getElementById('hide-banner').addEventListener('click', function() {
+    document.getElementById('setup-banner').style.display = 'none';
+    localStorage.setItem('banner_dismissed', '1');
+  });
+  if (localStorage.getItem('banner_dismissed')) {
+    document.getElementById('setup-banner').style.display = 'none';
+  }
 </script>
 </body>
 </html>
-<script>
-  // Auto-hide setup banner once Supabase credentials are configured & working
-  (async function() {
-    const banner = document.getElementById('setup-banner');
-    if (!banner) return;
-
-    // Keep hidden if user already dismissed it
-    if (localStorage.getItem('banner_dismissed')) {
-      banner.style.display = 'none';
-      return;
-    }
-
-    try {
-      const res = await fetch('config.js');
-      const text = await res.text();
-      if (!text.includes('YOUR_SUPABASE_URL')) {
-        const urlMatch = text.match(/SUPABASE_URL\s*=\s*['"]([^'"]+)['"]/);
-        const keyMatch = text.match(/SUPABASE_KEY\s*=\s*['"]([^'"]+)['"]/);
-        if (urlMatch && keyMatch) {
-          const s = document.createElement('script');
-          s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
-          s.onload = async () => {
-            try {
-              const client = supabase.createClient(urlMatch[1], keyMatch[1]);
-              const { error } = await client.from('packing_items').select('id').limit(1);
-              if (!error) banner.style.display = 'none';
-            } catch {}
-          };
-          document.head.appendChild(s);
-        }
-      }
-    } catch {}
-
-    // Wire up dismiss button to remember choice
-    document.getElementById('hide-banner').addEventListener('click', function() {
-      banner.style.display = 'none';
-      localStorage.setItem('banner_dismissed', '1');
-    });
-  })();
-</script>
