@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Florence — San Niccolò, 19–24 September</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDEEEA;--surface:#F6F7F4;--surface-alt:#E3E6E0;
+  --text:#232A2B;--text-soft:#4E5859;
+  --serena:#8A9691;--serena-deep:#5C6A64;--gold:#A8801F;
+  --line:rgba(92,106,100,.28);--hill:#DDE2DB;--river:#C6D2D4;--radius:3px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#191E1E;--surface:#212827;--surface-alt:#2A3331;
+    --text:#E4E7E2;--text-soft:#A3AEA9;
+    --serena:#7E8D87;--serena-deep:#9DAAA4;--gold:#D2A643;
+    --line:rgba(157,170,164,.26);--hill:#252D2C;--river:#2A3639;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#191E1E;--surface:#212827;--surface-alt:#2A3331;
+  --text:#E4E7E2;--text-soft:#A3AEA9;
+  --serena:#7E8D87;--serena-deep:#9DAAA4;--gold:#D2A643;
+  --line:rgba(157,170,164,.26);--hill:#252D2C;--river:#2A3639;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.5;padding:0 0 4rem}
+.wrap{max-width:46rem;margin:0 auto;padding:0 1.1rem}
+
+header.top{padding:2.2rem 0 .3rem}
+h1{font-family:Spectral,Georgia,serif;font-weight:300;
+  font-size:clamp(1.9rem,8vw,2.7rem);line-height:1.03;margin:0 0 .35rem;letter-spacing:-.015em}
+h1 em{font-style:italic;font-weight:400}
+.sub{font-size:.84rem;color:var(--text-soft);margin:0}
+
+nav.tabs{
+  position:sticky;top:0;z-index:20;background:var(--bg);
+  margin:1.3rem -1.1rem 0;padding:.5rem 1.1rem .1rem;
+  border-bottom:1px solid var(--line);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;scrollbar-width:none;
+}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{
+  font:inherit;font-size:.87rem;font-weight:500;
+  background:none;border:none;color:var(--text-soft);
+  padding:.45rem .1rem .55rem;margin-right:1.25rem;cursor:pointer;
+  border-bottom:2px solid transparent;
+}
+nav.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--gold)}
+nav.tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+section.panel{display:none;padding-top:.4rem}
+section.panel.on{display:block}
+
+h2{font-family:Spectral,Georgia,serif;font-weight:600;font-size:1.22rem;
+  margin:2.1rem 0 .2rem;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2.first{margin-top:1.6rem}
+h3{font-family:Spectral,Georgia,serif;font-weight:600;font-size:1rem;
+  margin:1.5rem 0 .35rem;color:var(--serena-deep)}
+p{margin:.75rem 0 0;font-size:.93rem;line-height:1.62}
+p.lead{font-size:.88rem;color:var(--text-soft)}
+em.it{font-style:italic}
+
+ol.run{list-style:none;margin:1.1rem 0 0 3.3rem;padding:0 0 0 4.1rem;border-left:1px solid var(--line)}
+ol.run li{position:relative;padding:.5rem 0 .7rem}
+ol.run li::before{content:"";position:absolute;left:-4.1rem;top:.9rem;width:9px;height:9px;
+  transform:translateX(-5px);background:var(--serena-deep);border:1px solid var(--serena-deep)}
+ol.run li.soft::before{background:var(--bg)}
+.t{position:absolute;left:-3.75rem;top:.45rem;width:3rem;text-align:right;
+  font-size:.81rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--serena-deep)}
+.what{font-size:.96rem;line-height:1.35;font-weight:500}
+.why{display:block;font-size:.81rem;color:var(--text-soft);margin-top:.15rem;line-height:1.45}
+
+.card{border-left:2px solid var(--serena);background:var(--surface);
+  padding:.7rem .85rem;margin:.55rem 0 0;border-radius:0 var(--radius) var(--radius) 0}
+.card.pick{border-left-color:var(--gold)}
+.card .name{font-family:Spectral,Georgia,serif;font-weight:600;font-size:1rem;line-height:1.25;margin:0}
+.card .meta{font-size:.75rem;color:var(--serena-deep);margin:.18rem 0 .3rem;font-variant-numeric:tabular-nums}
+.card .desc{font-size:.85rem;color:var(--text-soft);line-height:1.5;margin:0}
+.card .num{display:inline-block;min-width:1.15rem;height:1.15rem;line-height:1.15rem;
+  text-align:center;background:var(--serena-deep);color:var(--bg);
+  font-size:.7rem;font-weight:600;border-radius:50%;margin-right:.38rem;vertical-align:.08em}
+.card.pick .num{background:var(--gold)}
+
+table{width:100%;border-collapse:collapse;margin:.9rem 0 0;font-size:.85rem}
+th,td{text-align:left;padding:.42rem .5rem .42rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:.77rem;color:var(--serena-deep)}
+td.n{text-align:right;padding-right:0;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.note{border-left:2px solid var(--gold);background:var(--surface);padding:.7rem .85rem;
+  margin:1rem 0 0;font-size:.86rem;line-height:1.55;border-radius:0 var(--radius) var(--radius) 0}
+ul.plain{margin:.7rem 0 0;padding-left:1.1rem;font-size:.9rem;line-height:1.6}
+ul.plain li{margin-bottom:.45rem}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.86em;background:var(--surface-alt);padding:.08em .35em;border-radius:2px}
+
+dl.phr{margin:.9rem 0 0;font-size:.9rem}
+dl.phr div{padding:.5rem 0;border-bottom:1px solid var(--line)}
+dl.phr dt{font-family:Spectral,Georgia,serif;font-weight:600;font-size:1.02rem}
+dl.phr dd{margin:.1rem 0 0;color:var(--text-soft);font-size:.84rem}
+dl.phr .say{color:var(--serena-deep);font-style:italic}
+
+figure.map{margin:1.2rem 0 0;padding:0}
+svg.plan{width:100%;height:auto;display:block;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius)}
+figcaption{font-size:.75rem;color:var(--text-soft);margin-top:.45rem;line-height:1.45}
+.svg-pin{font-family:Inter,sans-serif;font-size:8px;font-weight:600;fill:var(--surface)}
+.svg-street{font-family:Inter,sans-serif;font-size:7.5px;fill:var(--serena);letter-spacing:.05em}
+.svg-label{font-family:Inter,sans-serif;font-size:8px;fill:var(--text-soft)}
+ol.legend{list-style:none;margin:1rem 0 0;padding:0;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));gap:.2rem .8rem;font-size:.82rem}
+ol.legend li{display:flex;gap:.45rem;align-items:baseline;padding:.15rem 0}
+ol.legend .n{display:inline-block;min-width:1.1rem;height:1.1rem;line-height:1.1rem;text-align:center;
+  background:var(--serena-deep);color:var(--bg);font-size:.68rem;font-weight:600;border-radius:50%;flex:none}
+ol.legend li.gold .n{background:var(--gold)}
+
+a.maplink{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}
+a.maplink:hover{border-bottom-color:var(--gold)}
+svg.plan a{cursor:pointer}
+.filters{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0 .8rem}
+.filters button{font:inherit;font-size:.8rem;font-weight:500;cursor:pointer;
+  border:1px solid var(--line);background:var(--surface);color:var(--text-soft);
+  padding:.34rem .7rem;border-radius:999px;display:flex;align-items:center;gap:.4rem}
+.filters button .sw{width:9px;height:9px;border-radius:50%;flex:none}
+.filters button[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+#map{width:100%;height:58vh;min-height:340px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-alt)}
+.count{font-size:.78rem;color:var(--text-soft);margin:.55rem 0 0}
+ol.places{list-style:none;margin:.6rem 0 0;padding:0}
+ol.places li{border-bottom:1px solid var(--line)}
+ol.places button{display:flex;gap:.6rem;align-items:baseline;width:100%;text-align:left;
+  font:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:.6rem .4rem .6rem 0}
+ol.places button:hover{background:var(--surface-alt)}
+ol.places .n{display:inline-block;min-width:1.35rem;height:1.35rem;line-height:1.35rem;
+  text-align:center;color:#fff;font-size:.72rem;font-weight:600;border-radius:50%;flex:none}
+ol.places .nm{font-family:Spectral,Georgia,serif;font-weight:600;font-size:.97rem;line-height:1.3}
+ol.places .dt{display:block;font-size:.78rem;color:var(--text-soft);margin-top:.1rem;line-height:1.45}
+ol.places li.hide{display:none}
+.leaflet-popup-content{font-family:Inter,sans-serif;font-size:.85rem;line-height:1.45;margin:.7rem .85rem}
+.leaflet-popup-content b{font-family:Spectral,Georgia,serif;font-size:1rem}
+.tilewarn{display:none;border-left:2px solid var(--gold);background:var(--surface);
+  padding:.7rem .85rem;margin:.7rem 0 0;font-size:.84rem;line-height:1.55;border-radius:0 var(--radius) var(--radius) 0}
+.tilewarn.on{display:block}
+footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);font-size:.77rem;color:var(--text-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>San <em>Niccolò</em></h1>
+  <p class="sub">Via di San Niccolò 42 · 19–24 September 2026</p>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="tonight" aria-selected="true">Tonight</button>
+  <button role="tab" data-p="area" aria-selected="false">The area</button>
+  <button role="tab" data-p="history" aria-selected="false">History</button>
+  <button role="tab" data-p="lucia" aria-selected="false">Lucia</button>
+  <button role="tab" data-p="will" aria-selected="false">Will</button>
+  <button role="tab" data-p="map" aria-selected="false">Map</button>
+  <button role="tab" data-p="live" aria-selected="false">Live map</button>
+</nav>
+
+<!-- TONIGHT -->
+<section class="panel on" id="p-tonight" role="tabpanel">
+  <h2 class="first">The run of the evening</h2>
+  <p class="lead">Built around one hard deadline: San Miniato shuts at 19.00, twenty minutes before the sun goes down. So the church comes first and the viewpoint second.</p>
+  <ol class="run">
+    <li><span class="t">15.30</span><span class="what">Train in at Santa Maria Novella</span>
+      <span class="why">Taxi rank outside the main exit. Don't walk — half an hour, uphill at the end.</span></li>
+    <li><span class="t">16.00</span><span class="what">At the flat, bags down</span>
+      <span class="why">One street, running east from Via dei Bardi to the old city gate.</span></li>
+    <li class="soft"><span class="t">16.30</span><span class="what">Villa Bardini, if anyone still has legs</span>
+      <span class="why">Ten minutes west up Costa San Giorgio. Closes 19.30. Skip it without guilt.</span></li>
+    <li><span class="t">18.00</span><span class="what">Walk east to Piazza Poggi</span>
+      <span class="why">End of your street, under the medieval Porta San Niccolò. Two minutes.</span></li>
+    <li><span class="t">18.10</span><span class="what">Up the Rampe del Poggi</span>
+      <span class="why">Ramps, fountains and grottoes zigzagging up the hill. Fifteen to twenty minutes with children, shaded most of the way.</span></li>
+    <li><span class="t">18.40</span><span class="what">San Miniato al Monte</span>
+      <span class="why">Free. Five minutes above the piazzale. Closes 19.00 — the one time that matters tonight.</span></li>
+    <li><span class="t">19.05</span><span class="what">Down to Piazzale Michelangelo</span>
+      <span class="why">Sunset about 19.20. Buskers, crowds, the bronze David, the whole city below.</span></li>
+    <li class="soft"><span class="t">19.35</span><span class="what">Giardino delle Rose on the way down</span>
+      <span class="why">Free, closes 20.00. Grass, fewer people, the same view.</span></li>
+    <li><span class="t">20.15</span><span class="what">Dinner back on Via di San Niccolò</span>
+      <span class="why">Everything is within four minutes of the front door.</span></li>
+    <li class="soft"><span class="t">21.45</span><span class="what">Gelato, then bed</span>
+      <span class="why">Il Gelato di Filo open to 23.00.</span></li>
+  </ol>
+
+  <h2>Dinner</h2>
+  <p class="lead">It's Saturday. Phone ahead for the first two.</p>
+  <div class="card pick"><p class="name">Osteria Antica Mescita San Niccolò</p>
+    <p class="meta">Via di San Niccolò 60r · 19.00–22.30 · ~€25–35 a head · 055 234 2836</p>
+    <p class="desc">The neighbourhood's own. Wild boar, peposo, bistecca. The lower room is a converted crypt, which the kids will either love or find deeply alarming.</p></div>
+  <div class="card pick"><p class="name">Hosteria del Bricco</p>
+    <p class="meta">Via di San Niccolò 8r · Sat 19.00–23.00 · ~€30–40 a head · 055 234 5037</p>
+    <p class="desc">Small, candlelit, low Gothic arches. Duck ragù and rabbit are what to order. Twenty-odd covers, so booking isn't optional tonight.</p></div>
+  <div class="card"><p class="name">Principe della Carne</p>
+    <p class="meta">Via di San Niccolò 39r · 11.00–23.30, no break · ~€25–35</p>
+    <p class="desc">Steaks, carbonara, pizza on the side. Open straight through — the reliable fallback if the walk runs long or someone melts down.</p></div>
+  <div class="card"><p class="name">Osteria di Rocco</p>
+    <p class="meta">Via dei Renai 27 · 11.00–23.30 · ~€25–30</p>
+    <p class="desc">Facing the small park two minutes west. Osso buco, Tuscan crostini, tables outside. They hand out crayons.</p></div>
+  <div class="card"><p class="name">Principe del Mare</p>
+    <p class="meta">Via di San Niccolò 48r · 11.00–24.00 · ~€30–40</p>
+    <p class="desc">Seafood, which Florence isn't known for and which this place does anyway. Useful when nobody wants another plate of beef.</p></div>
+
+  <h2>Drinks and gelato</h2>
+  <div class="card pick"><p class="name">Empireo — Plaza Hotel Lucchesi</p>
+    <p class="meta">Lungarno della Zecca Vecchia 38 · to 23.00 · aperitivo ~€25</p>
+    <p class="desc">The nearest rooftop, eight minutes north over Ponte alle Grazie. Pool, loungers, a long view down the Arno. Save it for another evening — tonight you're on the hill.</p></div>
+  <div class="card"><p class="name">Rifrullo</p>
+    <p class="meta">Via di San Niccolò 57 · 08.00–01.30 · spritz ~€8–10</p>
+    <p class="desc">The street's living room. Coffee at eight in the morning, cocktails at midnight, garden terrace out the back.</p></div>
+  <div class="card"><p class="name">The Joshua Tree Pub</p>
+    <p class="meta">Via di San Niccolò 59r · to 02.00 Sat · pint ~€6–8</p>
+    <p class="desc">Craft beer, Guinness and rock on the stereo, thirty seconds from the door.</p></div>
+  <div class="card pick"><p class="name">Il Gelato di Filo</p>
+    <p class="meta">Via San Miniato 5 · 12.00–23.00 · €3–5</p>
+    <p class="desc">At the foot of the ramps, so you pass it coming down. Kept in covered steel tins rather than piled up in technicolour — always the sign of the real thing.</p></div>
+
+  <h2>Getting the taxi</h2>
+  <p class="lead">Two adults and two children fit a standard Florence taxi. With four large cases, ask for a <em class="it">maxi</em>.</p>
+  <h3>At the station today</h3>
+  <ul class="plain">
+    <li>Out of the main exit onto Piazza della Stazione. The rank is immediately left, marked <code>TAXI</code>. Join the queue.</li>
+    <li>Licensed taxis are white with a roof sign and a door number. Don't take a ride from anyone who approaches you inside the station.</li>
+    <li>Say the address: <em class="it">Via di San Niccolò quarantadue</em>. The street is inside the restricted traffic zone but taxis are exempt, so you'll get to the door.</li>
+    <li>Card or cash. No tip expected — round up a euro or two.</li>
+  </ul>
+  <h3>Booking one later in the week</h3>
+  <ul class="plain">
+    <li>You can't flag one down in Florence. Ranks, phone or app only.</li>
+    <li>Phone <code>055 4390</code> or <code>055 4242</code>. They give you a car name and number — something like <em class="it">Milano 23</em> — and an arrival time, usually five to ten minutes.</li>
+    <li>Apps: <strong>appTaxi</strong> and <strong>IT Taxi</strong> are the Italian ones. Free Now also works. Uber is black-car only here, roughly double.</li>
+    <li>The meter starts when the car is dispatched, so a booked taxi always reads higher than one from a rank.</li>
+  </ul>
+  <table>
+    <tr><th>Route</th><th class="n">Approx</th></tr>
+    <tr><td>Station → the flat</td><td class="n">€12–16</td></tr>
+    <tr><td>Per large bag</td><td class="n">€1</td></tr>
+    <tr><td>Sunday / holiday supplement</td><td class="n">€2.70</td></tr>
+    <tr><td>Night supplement, 22.00–06.00</td><td class="n">€3.30</td></tr>
+    <tr><td>Flat → Piazzale Michelangelo</td><td class="n">€10–14</td></tr>
+    <tr><td>Flat → airport</td><td class="n">€25–30</td></tr>
+  </table>
+  <div class="note"><strong>Cheaper up the hill:</strong> bus 12 or 13 from Lungarno Serristori goes to Piazzale Michelangelo. Tap a contactless card on the black reader as you board — about €1.70 each, nothing to buy in advance.</div>
+
+  <h2>Tonight, roughly</h2>
+  <table>
+    <tr><th>Item</th><th class="n">Family of four</th></tr>
+    <tr><td>Taxi from the station</td><td class="n">€15</td></tr>
+    <tr><td>Villa Bardini, if you go</td><td class="n">€20–25</td></tr>
+    <tr><td>San Miniato, Piazzale, rose garden</td><td class="n">free</td></tr>
+    <tr><td>Dinner with house wine</td><td class="n">€90–130</td></tr>
+    <tr><td>Gelato</td><td class="n">€14</td></tr>
+    <tr><td>A drink afterwards</td><td class="n">€16–20</td></tr>
+  </table>
+  <p class="lead">Call it €150–200, or €130 if you skip Bardini and eat at Principe della Carne.</p>
+</section>
+
+<!-- AREA -->
+<section class="panel" id="p-area" role="tabpanel">
+  <h2 class="first">Where you are</h2>
+  <p>San Niccolò is a single long street on the south bank, pinned between the river and the hill. It runs east from Via dei Bardi to the medieval gate at Piazza Poggi, and that's essentially the whole neighbourhood — a few hundred metres of five-storey stone houses with the green slope of Monte alle Croci rising directly behind them.</p>
+  <p>It is the quietest central address in Florence. Tour groups don't come here, because there's nothing on the street they've heard of. What there is instead: eight or nine restaurants, two wine bars, a pub, a gelateria, a handful of artisan workshops, and a steady trickle of people walking through on their way up to the viewpoint.</p>
+  <p>You are on the edge of everything without being in it. Cross Ponte alle Grazie and you're at Santa Croce in five minutes. Walk west along the river and you reach Ponte Vecchio in ten, the Uffizi in twelve, Santo Spirito in fifteen. Walk the other way, through the gate, and you're climbing into gardens.</p>
+
+  <h3>How far to everything</h3>
+  <table>
+    <tr><th>From the front door</th><th class="n">On foot</th></tr>
+    <tr><td>Porta San Niccolò and the ramps</td><td class="n">2 min</td></tr>
+    <tr><td>Ponte alle Grazie</td><td class="n">5 min</td></tr>
+    <tr><td>Santa Croce</td><td class="n">8 min</td></tr>
+    <tr><td>Villa Bardini</td><td class="n">10 min</td></tr>
+    <tr><td>Ponte Vecchio</td><td class="n">10 min</td></tr>
+    <tr><td>Uffizi</td><td class="n">12 min</td></tr>
+    <tr><td>Piazzale Michelangelo, up the ramps</td><td class="n">15–20 min</td></tr>
+    <tr><td>Palazzo Pitti and Boboli</td><td class="n">15 min</td></tr>
+    <tr><td>Santo Spirito</td><td class="n">15 min</td></tr>
+    <tr><td>Mercato di Sant'Ambrogio</td><td class="n">15 min</td></tr>
+    <tr><td>Duomo</td><td class="n">20 min</td></tr>
+    <tr><td>Accademia</td><td class="n">25 min</td></tr>
+    <tr><td>Santa Maria Novella station</td><td class="n">30 min</td></tr>
+  </table>
+
+  <h3>On the street itself</h3>
+  <p>Working from the western end: Osteria di Rocco and the little park on Via dei Renai; Rifrullo on the corner, open from breakfast to the small hours; Clet's studio tucked down Via dell'Olmo; the gelateria at the foot of Via San Miniato; three restaurants in a row; the Joshua Tree; then the street narrows and runs out at the gate.</p>
+
+  <h3>Practicalities</h3>
+  <ul class="plain">
+    <li><strong>Food shopping.</strong> A small alimentari on the street covers basics. For anything real, the Mercato di Sant'Ambrogio is fifteen minutes over the bridge, 7.00–14.00 daily except Sunday.</li>
+    <li><strong>Water.</strong> Public fountains at Piazza Poggi and in the rose garden. Tap water is fine.</li>
+    <li><strong>Buses.</strong> 12 and 13 run along Lungarno Serristori up to Piazzale Michelangelo. Contactless, tap on board.</li>
+    <li><strong>Bikes.</strong> RideMovi electric bikes are scattered around; scan the QR on the handlebar. No use uphill, good along the river.</li>
+    <li><strong>Evenings.</strong> Residential and quiet by midnight. The noisy bars are over in Santa Croce — close enough to walk to, far enough not to hear.</li>
+  </ul>
+
+  <h3>The walk west</h3>
+  <p>If you only do one aimless walk this week, do this one: out of the door, west along Via di San Niccolò, into Via dei Bardi where the street curves under the hill, past the flood plaques, and out at Ponte Vecchio. Ten minutes, passes almost nothing famous, and is one of the loveliest stretches in the city.</p>
+</section>
+
+<!-- HISTORY -->
+<section class="panel" id="p-history" role="tabpanel">
+  <h2 class="first">The gate that was never cut down</h2>
+  <p>The tower at the end of your street was built around 1324, part of Florence's sixth and last ring of walls. It is the only one of the city's gates still standing at full height.</p>
+  <p>All the others were lopped off in the mid-1500s. Artillery had arrived, and a tall stone tower had gone from being a defensive advantage to a large obvious target. Porta San Niccolò was spared because it sits tight against the hill — anyone attacking would have been firing downwards from above, so height made no difference. It survived by being in an awkward spot.</p>
+
+  <h2>Michelangelo's mattresses</h2>
+  <p>In 1529 the emperor's army laid siege to Florence, and the city put Michelangelo — a sculptor with no military training — in charge of the fortifications. He fortified San Miniato at the top of your hill, because whoever held that hill held the city.</p>
+  <p>The bell tower was the problem: it drew cannon fire. His solution was to hang mattresses stuffed with wool down the sides, so the shot struck something soft and lost its force. It worked. The tower is still there.</p>
+
+  <h2>Poggi's ramps</h2>
+  <p>In 1865 Florence became capital of the new Kingdom of Italy and set about remaking itself for the part. An architect named Giuseppe Poggi got the job. On the north bank he demolished the medieval walls entirely and replaced them with boulevards. On this side the walls survived — you can still trace them climbing the hill — and he built something else instead.</p>
+  <p>The Rampe del Poggi, finished in the 1870s, are the terraced ramps from the gate up to the viewpoint: switchbacks, retaining walls, fountains and artificial grottoes built from rough stone and shells. They fell derelict for decades and were restored and reopened in 2019. Piazzale Michelangelo at the top is his too, complete with the bronze David that took eighteen oxen to drag up there in 1873.</p>
+  <p>Florence was the capital for six years. The government moved to Rome in 1871 and left the city bankrupt from the building works.</p>
+
+  <h2>4 November 1966</h2>
+  <p>After days of rain the Arno broke its banks before dawn and put central Florence under water. San Niccolò, low and hard against the river, was among the worst hit — the water here rose over four metres, higher than the ground-floor ceilings.</p>
+  <p>Thirty-odd people died and millions of books and artworks were ruined. The volunteers who came from all over the world to dig them out were called the <em class="it">angeli del fango</em>, the mud angels.</p>
+  <p>Look for the small marble plaques set into walls along your street and around Santa Croce, each with a line and the date, marking where the water reached. Some are well above head height.</p>
+
+  <h2>Before all that</h2>
+  <p>This was a working district, not a grand one. The Arno powered the wool trade, and the riverside quarters were full of tanners, dyers and fullers — trades that stank and were pushed to the edge of town. The grand palaces are all on the other bank. What you have here are tall narrow houses built for people who worked with their hands, which is why the street still feels like a street rather than a monument.</p>
+  <p>Up the hill, the Forte di Belvedere was built for Grand Duke Ferdinando I in 1590. Officially it defended the city. In practice it pointed inwards as much as outwards, and gave the Medici somewhere to retreat to if the Florentines ever decided they'd had enough of them.</p>
+</section>
+
+<!-- LUCIA -->
+<section class="panel" id="p-lucia" role="tabpanel">
+  <h2 class="first">Lucia</h2>
+  <p class="lead">Things worth your time that aren't another church.</p>
+
+  <h3>The street-sign artist lives two minutes away</h3>
+  <p>Clet Abrahams is a French artist who has spent twenty years adding removable stickers to Florence's road signs. A no-entry sign gets a little man carrying the white bar away. A one-way arrow becomes Cupid's arrow through a heart. The city has never quite decided whether to be annoyed.</p>
+  <div class="card pick"><p class="name">CLET Studio</p>
+    <p class="meta">Via dell'Olmo 8r · 2 min from the door · closed Tuesdays · stickers from €1</p>
+    <p class="desc">His actual workshop, on a lane off your street. Stickers, prints, T-shirts, playing cards. Buy a sheet and then spend the week spotting his signs around the city — once you start you can't stop, and there are dozens in the centre.</p></div>
+
+  <h3>Vintage</h3>
+  <p>Florence has a proper vintage scene and it's mostly on your side of the river. Via Maggio is the main strip, about fifteen minutes west.</p>
+  <div class="card"><p class="name">C'est Chic Vintage</p>
+    <p class="meta">Via Maggio 17r · daily 10.30–19.30 · 15 min</p>
+    <p class="desc">Chosen rather than rummaged. Jackets, costume jewellery, small antiques. The kind of shop where everything has been picked by someone with an opinion.</p></div>
+  <div class="card"><p class="name">Tartan Vintage</p>
+    <p class="meta">Via dei Palchetti 5 · closed Sun, opens 14.30 Sat · 20 min</p>
+    <p class="desc">Run by a couple who know the history of every piece and will tell you if you ask. Strong on accessories and designer things that have survived forty years.</p></div>
+  <div class="card"><p class="name">Giratempo Vintage</p>
+    <p class="meta">Piazzetta Calamandrei 2, near Santa Croce · daily 10.00–19.00 · 10 min</p>
+    <p class="desc">The closest one, and the widest price range — real bargains mixed in with the serious labels.</p></div>
+
+  <h3>Paper and scent</h3>
+  <div class="card"><p class="name">Il Papiro</p>
+    <p class="meta">Several branches, including Via dei Tavolini 13r · daily 10.30–19.00</p>
+    <p class="desc">Florentine marbled paper, made by floating pigment on water and laying a sheet on top. Notebooks, wax seals, dip pens, ink they mix themselves. Catch them working and they'll usually demonstrate the marbling.</p></div>
+  <div class="card"><p class="name">Officina Profumo di Santa Maria Novella</p>
+    <p class="meta">Via della Scala 16 · free to walk around</p>
+    <p class="desc">A pharmacy run by Dominican monks since 1221, still in its frescoed halls. Buy nothing — go for the rooms and the smell, which is unlike any shop you've been in.</p></div>
+
+  <h3>The gelato project</h3>
+  <p>Give it the week and rank them properly. Two tells for the real thing: it should sit in covered steel tins, not piled in bright mounds under glass, and the pistachio should be a dull khaki. Bright green means dyed.</p>
+  <p>Start with Il Gelato di Filo at the bottom of your street, then Gelateria dei Neri over the bridge, then Cantina del Gelato on Via de' Bardi. Three data points is enough to start an argument.</p>
+
+  <h3>Five things to say</h3>
+  <dl class="phr">
+    <div><dt>Quanto costa?</dt><dd class="say">KWAN-toh KOS-ta</dd><dd>How much is it? The most useful phrase in any shop.</dd></div>
+    <div><dt>Posso provarlo?</dt><dd class="say">POSS-oh pro-VAR-loh</dd><dd>Can I try it on?</dd></div>
+    <div><dt>Sto solo guardando, grazie.</dt><dd class="say">stoh SOH-loh gwar-DAN-doh, GRAT-tsee-eh</dd><dd>I'm just looking, thanks. Polite, and it makes everyone relax.</dd></div>
+    <div><dt>Un cono da due gusti, per favore.</dt><dd class="say">oon KOH-noh da DOO-eh GOOS-tee</dd><dd>A two-flavour cone, please.</dd></div>
+    <div><dt>Che bello!</dt><dd class="say">keh BEL-loh</dd><dd>How lovely. Works for a view, a jacket, a dog, anything.</dd></div>
+  </dl>
+</section>
+
+<!-- WILL -->
+<section class="panel" id="p-will" role="tabpanel">
+  <h2 class="first">Will</h2>
+  <p class="lead">Buildings that shouldn't work, and one finger in a jar.</p>
+
+  <h3>The dome nobody could build</h3>
+  <p>The cathedral was started in 1296 with a hole at the top, because the Florentines designed a dome bigger than anyone knew how to build and decided to work it out later. The hole stayed open for over a century.</p>
+  <p>The problem: a dome that size normally needs a wooden framework underneath to hold it up while it's built, and no forest in Tuscany had trees long enough. Brunelleschi won the commission in 1418 by claiming he could do it with no framework at all — the dome would hold itself up as it went.</p>
+  <p>He managed it with two shells, one inside the other, and four million bricks laid in a herringbone pattern that locks each course into the one below so nothing slides off before the mortar sets. He also had to invent the machines: a reversible ox-driven hoist to lift stone hundreds of feet, and a crane that could swing a load sideways once it got up there.</p>
+  <p>Six hundred years on there's still argument about exactly how. A Florentine architect called Massimo Ricci spent his career on the question and built a half-million-brick scale replica in a park east of the city to prove his theory.</p>
+
+  <h3>Your own gate</h3>
+  <p>Porta San Niccolò, 1324, at the end of the street — the only city gate in Florence still at its original full height. The rest were cut down in the 1500s because cannon had made tall towers a liability. Yours survived because it sits under the hill, where an attacker would be shooting downwards anyway, so height didn't matter. In summer you can sometimes climb the internal stair.</p>
+
+  <h3>Mattresses against cannonballs</h3>
+  <p>During the 1529 siege, Michelangelo was put in charge of defending Florence. He fortified San Miniato at the top of your hill and protected its bell tower from artillery by hanging wool-stuffed mattresses down the sides so the shot hit something soft. It held.</p>
+
+  <h3>The bridge that didn't get blown up</h3>
+  <p>Ponte Vecchio was lined with butchers until 1593, when Grand Duke Ferdinando I evicted them — the smell was reaching his private corridor overhead — and let only goldsmiths trade there. They're still the only shops on it.</p>
+  <p>In August 1944 the retreating German army destroyed every bridge in Florence. Ponte Vecchio was the single exception; instead they demolished the medieval buildings at each end to block the approaches. Nobody is certain why it was spared.</p>
+  <p>The corridor overhead is the Vasari Corridor, built in 1565 so the Medici could walk from the town hall to their palace without setting foot among the public. It runs almost a kilometre, straight through buildings and over the bridge.</p>
+
+  <h3>Galileo's finger</h3>
+  <div class="card pick"><p class="name">Museo Galileo</p>
+    <p class="meta">Piazza dei Giudici 1 · 12 min walk · ~€14, reduced under 18</p>
+    <p class="desc">Galileo's two surviving telescopes, the lens he used to find Jupiter's moons, and several centuries of beautiful brass instruments for measuring things. Also, in a glass egg on a stand, his actual middle finger — removed when he was reburied in 1737 and displayed ever since, pointing upward. Nobody thinks this is normal and everyone goes to look.</p></div>
+
+  <h3>A Roman arena under the streets</h3>
+  <p>Walk through Piazza de' Peruzzi near Santa Croce and look at the buildings on the north side: they curve in a smooth arc for no visible reason. They're standing on the foundations of a second-century Roman amphitheatre, 120 metres across, that held twenty thousand people. It's never been excavated. It's just still down there, shaping the street plan seventeen centuries later.</p>
+
+  <h3>The high-water marks</h3>
+  <p>On 4 November 1966 the Arno flooded and the water in this neighbourhood rose over four metres. Small marble plaques are set into walls around here and by Santa Croce, each with a line and the date, marking where it reached. Find one and stand next to it.</p>
+
+  <h3>Five things to say</h3>
+  <dl class="phr">
+    <div><dt>Come funziona?</dt><dd class="say">KOH-meh foon-tsee-OH-na</dd><dd>How does it work?</dd></div>
+    <div><dt>Quanti anni ha?</dt><dd class="say">KWAN-tee AH-nee ah</dd><dd>How old is it?</dd></div>
+    <div><dt>Posso salire?</dt><dd class="say">POSS-oh sa-LEE-reh</dd><dd>Can I go up? Useful at towers.</dd></div>
+    <div><dt>Che figata!</dt><dd class="say">keh fee-GAH-ta</dd><dd>How cool. Slang, slightly cheeky, and Italian teenagers say it constantly.</dd></div>
+    <div><dt>Ancora un po', per favore.</dt><dd class="say">an-KOH-ra oon POH</dd><dd>A bit more, please. Works at the dinner table.</dd></div>
+  </dl>
+</section>
+
+<!-- MAP -->
+<section class="panel" id="p-map" role="tabpanel">
+  <h2 class="first">Everything, mapped</h2>
+  <p class="lead">Both maps below are drawn to true scale from real coordinates — positions and distances are accurate, north is up. Tap any pin or any name to open it in your phone's map app.</p>
+
+  <h3>The neighbourhood</h3>
+  <figure class="map">
+    <svg class="plan" viewBox="0 0 372 420" xmlns="http://www.w3.org/2000/svg" role="img"
+      aria-label="Scale map of San Niccolò from the Arno to San Miniato, with numbered locations">
+      <path d="M0 13 C 90 24, 170 44, 372 83 L372 103 C 170 64, 90 44, 0 33 Z" fill="var(--river)"/>
+      <text class="svg-street" x="120" y="52" transform="rotate(9.5 120 52)">A R N O</text>
+      <path d="M0 420 L0 268 C 90 252, 180 228, 250 206 C 300 190, 340 186, 372 188 L372 420 Z" fill="var(--hill)"/>
+      <rect x="91" y="18" width="8" height="26" fill="var(--serena)" opacity=".5"/>
+      <text class="svg-street" x="102" y="20">Ponte alle Grazie</text>
+      <path d="M112 145 C 180 155, 260 160, 336 161" stroke="var(--serena-deep)" stroke-width="2.2" fill="none"/>
+      <path d="M336 161 C 306 176, 296 192, 322 204 C 344 214, 300 222, 298 237" stroke="var(--serena)" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+      <path d="M340 237 C 362 290, 352 348, 337 400" stroke="var(--serena)" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+      <text class="svg-street" x="292" y="196" transform="rotate(62 292 196)">RAMPE DEL POGGI</text>
+      <text class="svg-street" x="120" y="140">VIA DI SAN NICCOLÒ</text>
+
+      <g stroke="var(--serena)" stroke-width=".7">
+        <line x1="30" y1="13" x2="54" y2="32"/><line x1="280" y1="61" x2="300" y2="42"/>
+        <line x1="132" y1="140" x2="112" y2="122"/><line x1="220" y1="173" x2="200" y2="196"/>
+        <line x1="336" y1="161" x2="316" y2="140"/><line x1="40" y1="187" x2="54" y2="208"/>
+        <line x1="264" y1="234" x2="240" y2="254"/><line x1="340" y1="237" x2="346" y2="262"/>
+        <line x1="337" y1="400" x2="314" y2="380"/>
+      </g>
+      <g fill="var(--serena-deep)">
+        <circle cx="30" cy="13" r="3"/><circle cx="280" cy="61" r="3"/><circle cx="132" cy="140" r="3"/>
+        <circle cx="220" cy="173" r="3"/><circle cx="336" cy="161" r="3"/><circle cx="40" cy="187" r="3"/>
+        <circle cx="264" cy="234" r="3"/><circle cx="340" cy="237" r="3"/><circle cx="337" cy="400" r="3"/>
+      </g>
+
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7677337,11.2559032" target="_blank" rel="noopener">
+        <circle cx="54" cy="32" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="54" y="35" text-anchor="middle">17</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7666919,11.2632799" target="_blank" rel="noopener">
+        <circle cx="300" cy="42" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="300" y="45" text-anchor="middle">15</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7649969,11.2589107" target="_blank" rel="noopener">
+        <circle cx="112" cy="122" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="112" y="125" text-anchor="middle">11</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7643,11.2615" target="_blank" rel="noopener">
+        <circle cx="200" cy="196" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="200" y="199" text-anchor="middle">1</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7645484,11.2649262" target="_blank" rel="noopener">
+        <circle cx="316" cy="140" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="316" y="143" text-anchor="middle">2</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7639854,11.2561705" target="_blank" rel="noopener">
+        <circle cx="54" cy="208" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="54" y="211" text-anchor="middle">6</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7629895,11.2628239" target="_blank" rel="noopener">
+        <circle cx="240" cy="254" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="240" y="257" text-anchor="middle">5</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7629314,11.2650561" target="_blank" rel="noopener">
+        <circle cx="346" cy="262" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="346" y="265" text-anchor="middle">3</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7594184,11.2649796" target="_blank" rel="noopener">
+        <circle cx="314" cy="380" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="314" y="383" text-anchor="middle">4</text></a>
+
+      <g>
+        <line x1="20" y1="404" x2="104" y2="404" stroke="var(--text-soft)" stroke-width="1.2"/>
+        <line x1="20" y1="400" x2="20" y2="408" stroke="var(--text-soft)" stroke-width="1.2"/>
+        <line x1="104" y1="400" x2="104" y2="408" stroke="var(--text-soft)" stroke-width="1.2"/>
+        <text class="svg-label" x="62" y="398" text-anchor="middle">200 m</text>
+      </g>
+      <g>
+        <line x1="352" y1="18" x2="352" y2="40" stroke="var(--text-soft)" stroke-width="1.2"/>
+        <path d="M352 14 L348 22 L356 22 Z" fill="var(--text-soft)"/>
+        <text class="svg-label" x="352" y="52" text-anchor="middle">N</text>
+      </g>
+    </svg>
+    <figcaption>To scale. The Arno runs across the top; the ground rises steadily to San Miniato, which is about 100 m above your street.</figcaption>
+  </figure>
+
+  <h3>Your street, close up</h3>
+  <figure class="map">
+    <svg class="plan" viewBox="0 0 372 176" xmlns="http://www.w3.org/2000/svg" role="img"
+      aria-label="Scale map of Via di San Niccolò with numbered restaurants, bars and shops">
+      <path d="M0 176 L0 152 C 90 146, 200 140, 372 132 L372 176 Z" fill="var(--hill)"/>
+      <path d="M29 58 C 80 72, 120 86, 157 90 C 200 95, 230 84, 262 80 L323 79" stroke="var(--serena-deep)" stroke-width="2.6" fill="none"/>
+      <path d="M70 70 L40 46" stroke="var(--serena)" stroke-width="1.6" fill="none"/>
+      <path d="M160 92 L205 112" stroke="var(--serena)" stroke-width="1.6" fill="none"/>
+      <path d="M140 82 L132 62" stroke="var(--serena)" stroke-width="1.2" fill="none"/>
+      <text class="svg-street" x="60" y="84">VIA DI SAN NICCOLÒ</text>
+      <text class="svg-street" x="186" y="112" transform="rotate(24 186 112)">V. SAN MINIATO</text>
+      <text class="svg-street" x="18" y="40">V. DEI RENAI</text>
+
+      <g stroke="var(--serena)" stroke-width=".7">
+        <line x1="50" y1="50" x2="38" y2="26"/><line x1="138" y1="80" x2="110" y2="48"/>
+        <line x1="157" y1="90" x2="132" y2="64"/><line x1="168" y1="94" x2="168" y2="50"/>
+        <line x1="173" y1="96" x2="205" y2="58"/><line x1="172" y1="102" x2="228" y2="72"/>
+        <line x1="157" y1="99" x2="118" y2="120"/><line x1="166" y1="107" x2="150" y2="146"/>
+        <line x1="200" y1="107" x2="208" y2="148"/><line x1="262" y1="80" x2="272" y2="50"/>
+        <line x1="323" y1="79" x2="330" y2="112"/>
+      </g>
+      <g fill="var(--serena-deep)">
+        <circle cx="50" cy="50" r="3"/><circle cx="138" cy="80" r="3"/><circle cx="157" cy="90" r="3"/>
+        <circle cx="168" cy="94" r="3"/><circle cx="173" cy="96" r="3"/><circle cx="172" cy="102" r="3"/>
+        <circle cx="157" cy="99" r="3"/><circle cx="166" cy="107" r="3"/><circle cx="200" cy="107" r="3"/>
+        <circle cx="262" cy="80" r="3"/><circle cx="323" cy="79" r="3"/>
+      </g>
+
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7649969,11.2589107" target="_blank" rel="noopener">
+        <circle cx="38" cy="26" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="38" y="29" text-anchor="middle">11</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7645212,11.2608504" target="_blank" rel="noopener">
+        <circle cx="110" cy="48" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="110" y="51" text-anchor="middle">7</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7643653,11.2612688" target="_blank" rel="noopener">
+        <circle cx="132" cy="64" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="132" y="67" text-anchor="middle">8</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7643,11.2615" target="_blank" rel="noopener">
+        <circle cx="168" cy="50" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="168" y="53" text-anchor="middle">1</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7642747,11.2616222" target="_blank" rel="noopener">
+        <circle cx="205" cy="58" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="205" y="61" text-anchor="middle">16</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7641771,11.2615872" target="_blank" rel="noopener">
+        <circle cx="228" cy="72" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="228" y="75" text-anchor="middle">13</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7642186,11.2612687" target="_blank" rel="noopener">
+        <circle cx="118" cy="120" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="118" y="123" text-anchor="middle">14</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7641043,11.2614491" target="_blank" rel="noopener">
+        <circle cx="150" cy="146" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="150" y="149" text-anchor="middle">12</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7640881,11.2621988" target="_blank" rel="noopener">
+        <circle cx="208" cy="148" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="208" y="151" text-anchor="middle">10</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7645342,11.2635777" target="_blank" rel="noopener">
+        <circle cx="272" cy="50" r="8.5" fill="var(--gold)"/><text class="svg-pin" x="272" y="53" text-anchor="middle">9</text></a>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=43.7645484,11.2649262" target="_blank" rel="noopener">
+        <circle cx="330" cy="112" r="8.5" fill="var(--serena-deep)"/><text class="svg-pin" x="330" y="115" text-anchor="middle">2</text></a>
+
+      <g>
+        <line x1="20" y1="162" x2="76" y2="162" stroke="var(--text-soft)" stroke-width="1.2"/>
+        <line x1="20" y1="158" x2="20" y2="166" stroke="var(--text-soft)" stroke-width="1.2"/>
+        <line x1="76" y1="158" x2="76" y2="166" stroke="var(--text-soft)" stroke-width="1.2"/>
+        <text class="svg-label" x="48" y="156" text-anchor="middle">100 m</text>
+      </g>
+    </svg>
+    <figcaption>Small dots are the true positions; the numbered circles are pulled aside so they don't sit on top of each other. Half these places are within forty metres of one another.</figcaption>
+  </figure>
+
+  <ol class="legend">
+    <li class="gold"><span class="n">1</span> The flat</li>
+    <li><span class="n">2</span> Porta San Niccolò</li>
+    <li class="gold"><span class="n">3</span> Piazzale Michelangelo</li>
+    <li class="gold"><span class="n">4</span> San Miniato</li>
+    <li><span class="n">5</span> Giardino delle Rose</li>
+    <li><span class="n">6</span> Villa Bardini</li>
+    <li class="gold"><span class="n">7</span> CLET Studio</li>
+    <li class="gold"><span class="n">8</span> Antica Mescita</li>
+    <li class="gold"><span class="n">9</span> Hosteria del Bricco</li>
+    <li><span class="n">10</span> Principe della Carne</li>
+    <li><span class="n">11</span> Osteria di Rocco</li>
+    <li class="gold"><span class="n">12</span> Il Gelato di Filo</li>
+    <li><span class="n">13</span> Rifrullo</li>
+    <li><span class="n">14</span> The Joshua Tree</li>
+    <li><span class="n">15</span> Empireo rooftop</li>
+    <li><span class="n">16</span> Principe del Mare</li>
+    <li><span class="n">17</span> Museo Galileo</li>
+  </ol>
+
+  <h2>The cards</h2>
+  <div class="card pick"><p class="name"><span class="num">1</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7643,11.2615" target="_blank" rel="noopener">The flat</a></p>
+    <p class="meta">Via di San Niccolò 42</p>
+    <p class="desc">Halfway along the street. West takes you to the river walk and Ponte Vecchio; east to the gate and the hill.</p></div>
+  <div class="card"><p class="name"><span class="num">2</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7645484,11.2649262" target="_blank" rel="noopener">Porta San Niccolò</a></p>
+    <p class="meta">Piazza Giuseppe Poggi · 2 min · free to stand under</p>
+    <p class="desc">1324, and the only Florentine gate never cut down to size. The ramps start immediately behind it.</p></div>
+  <div class="card pick"><p class="name"><span class="num">3</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7629314,11.2650561" target="_blank" rel="noopener">Piazzale Michelangelo</a></p>
+    <p class="meta">15–20 min up the ramps · free · buses 12 and 13</p>
+    <p class="desc">Poggi's terrace from the 1870s, with a bronze David in the middle. Crowded at sunset and worth it anyway.</p></div>
+  <div class="card pick"><p class="name"><span class="num">4</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7594184,11.2649796" target="_blank" rel="noopener">San Miniato al Monte</a></p>
+    <p class="meta">5 min above the piazzale · free · 15.30–19.00</p>
+    <p class="desc">Consecrated 1018, geometric green and white marble, and a better building than anything at the viewpoint below. Michelangelo fortified it in 1529. Closes at 19.00 — go before the sunset, not after.</p></div>
+  <div class="card"><p class="name"><span class="num">5</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7629895,11.2628239" target="_blank" rel="noopener">Giardino delle Rose</a></p>
+    <p class="meta">Below the piazzale · free · to 20.00</p>
+    <p class="desc">Terraced rose garden with scattered bronze sculptures, grass to sit on and the same view with a tenth of the people.</p></div>
+  <div class="card"><p class="name"><span class="num">6</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7639854,11.2561705" target="_blank" rel="noopener">Villa Bardini</a></p>
+    <p class="meta">Costa San Giorgio 2 · 10 min · €10 · to 19.30</p>
+    <p class="desc">Steep terraced garden with a wisteria tunnel and, from the top, the cleanest view of the Duomo in Florence.</p></div>
+  <div class="card pick"><p class="name"><span class="num">7</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7645212,11.2608504" target="_blank" rel="noopener">CLET Studio</a></p>
+    <p class="meta">Via dell'Olmo 8r · 2 min · closed Tuesdays · stickers €1</p>
+    <p class="desc">The street-sign artist's workshop on a lane off your street. Buy stickers, then spend the week spotting his work all over the city.</p></div>
+  <div class="card pick"><p class="name"><span class="num">8</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7643653,11.2612688" target="_blank" rel="noopener">Osteria Antica Mescita San Niccolò</a></p>
+    <p class="meta">Via di San Niccolò 60r · 19.00–22.30 · ~€25–35 · 055 234 2836</p>
+    <p class="desc">Wild boar, peposo, a dining room in an old crypt. The neighbourhood's own.</p></div>
+  <div class="card pick"><p class="name"><span class="num">9</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7645342,11.2635777" target="_blank" rel="noopener">Hosteria del Bricco</a></p>
+    <p class="meta">Via di San Niccolò 8r · Sat 19.00–23.00 · ~€30–40 · 055 234 5037</p>
+    <p class="desc">Twenty covers under Gothic arches. Duck ragù, rabbit. Book.</p></div>
+  <div class="card"><p class="name"><span class="num">10</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7640881,11.2621988" target="_blank" rel="noopener">Principe della Carne</a></p>
+    <p class="meta">Via di San Niccolò 39r · 11.00–23.30 · ~€25–35</p>
+    <p class="desc">Steaks and pasta, open all day. The no-plan fallback.</p></div>
+  <div class="card"><p class="name"><span class="num">11</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7649969,11.2589107" target="_blank" rel="noopener">Osteria di Rocco</a></p>
+    <p class="meta">Via dei Renai 27 · 11.00–23.30 · ~€25–30</p>
+    <p class="desc">By the park at the western end. Osso buco, outdoor tables, crayons for younger children.</p></div>
+  <div class="card pick"><p class="name"><span class="num">12</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7641043,11.2614491" target="_blank" rel="noopener">Il Gelato di Filo</a></p>
+    <p class="meta">Via San Miniato 5 · 12.00–23.00 · €3–5</p>
+    <p class="desc">At the foot of the ramps. Organic, seasonal, kept in covered tins. Mandarin and basil-strawberry.</p></div>
+  <div class="card"><p class="name"><span class="num">13</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7641771,11.2615872" target="_blank" rel="noopener">Rifrullo</a></p>
+    <p class="meta">Via di San Niccolò 57 · 08.00–01.30</p>
+    <p class="desc">Breakfast, spritzes and a garden terrace. You'll end up here more than once.</p></div>
+  <div class="card"><p class="name"><span class="num">14</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7642186,11.2612687" target="_blank" rel="noopener">The Joshua Tree Pub</a></p>
+    <p class="meta">Via di San Niccolò 59r · to 02.00 Sat</p>
+    <p class="desc">Craft beer and Guinness, thirty seconds from the door.</p></div>
+  <div class="card"><p class="name"><span class="num">15</span><a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=43.7666919,11.2632799" target="_blank" rel="noopener">Empireo rooftop</a></p>
+    <p class="meta">Lungarno della Zecca Vecchia 38 · 8 min · to 23.00 · aperitivo ~€25</p>
+    <p class="desc">Plaza Hotel Lucchesi's roof. Pool, loungers, the view down the Arno. The nearest rooftop bar to you.</p></div>
+</section>
+
+<section class="panel" id="p-live" role="tabpanel">
+  <h2 class="first">Live map</h2>
+  <p class="lead">Leaflet and OpenStreetMap. Filter by category, tap a pin or a name in the list below, and every popup has a directions link.</p>
+  <div class="filters" id="filters"></div>
+  <div id="map"></div>
+  <p class="count" id="count"></p>
+  <div class="tilewarn" id="tilewarn">
+    <strong>Map tiles aren't loading.</strong> Usually a connection problem — the tiles come from OpenStreetMap and need a signal the first time. The filterable list below still works offline, and the <em class="it">Map</em> tab has two drawn-to-scale maps that always render.
+  </div>
+  <h2>The list</h2>
+  <ol class="places" id="places"></ol>
+</section>
+
+<footer>
+  Prices and hours are approximate — worth a glance before you set out. Tonight's only fixed point is San Miniato closing at 19.00.
+</footer>
+
+</div>
+
+<script>
+const tabs = [...document.querySelectorAll("nav.tabs button")];
+const KEY = "sanniccolo-tab";
+
+function show(id, save){
+  tabs.forEach(b => b.setAttribute("aria-selected", b.dataset.p === id));
+  document.querySelectorAll("section.panel").forEach(p => p.classList.toggle("on", p.id === "p-" + id));
+  window.scrollTo({top:0});
+  if (id === "live" && window.__initLiveMap) window.__initLiveMap();
+  if (save) { try { localStorage.setItem(KEY, id); } catch(e){} }
+}
+
+tabs.forEach(b => b.addEventListener("click", () => show(b.dataset.p, true)));
+
+try {
+  const saved = localStorage.getItem(KEY);
+  if (saved && tabs.some(b => b.dataset.p === saved)) show(saved, false);
+} catch(e){}
+</script>
+<script>
+(function(){
+var CATS = {
+  home:   {label:"Staying",          color:"#A8801F"},
+  sight:  {label:"Sights & views",   color:"#5C6A64"},
+  eat:    {label:"Eat",              color:"#A34E3A"},
+  drink:  {label:"Drink",            color:"#3E6B78"},
+  gelato: {label:"Gelato",           color:"#7E5F9C"},
+  shop:   {label:"Shops & museums",  color:"#66803F"}
+};
+var PLACES = [
+ {n:1,cat:"home",name:"The flat",lat:43.7643,lng:11.2615,note:"Via di San Niccolò 42. West for the river walk and Ponte Vecchio; east for the gate and the hill."},
+ {n:2,cat:"sight",name:"Porta San Niccolò",lat:43.7645484,lng:11.2649262,note:"1324. The only Florence gate never cut down. The ramps start behind it. 2 min."},
+ {n:3,cat:"sight",name:"Piazzale Michelangelo",lat:43.7629314,lng:11.2650561,note:"Free. Sunset about 19.20. 15–20 min up the ramps, or buses 12 and 13."},
+ {n:4,cat:"sight",name:"San Miniato al Monte",lat:43.7594184,lng:11.2649796,note:"Free. 09.30–13.00 and 15.30–19.00. Closes before sunset — go up before the viewpoint, not after."},
+ {n:5,cat:"sight",name:"Giardino delle Rose",lat:43.7629895,lng:11.2628239,note:"Free, to 20.00. Below the piazzale — grass, bronzes, a tenth of the crowd."},
+ {n:6,cat:"sight",name:"Villa Bardini",lat:43.7639854,lng:11.2561705,note:"€10, to 19.30. Terraced garden, wisteria tunnel, the cleanest Duomo view in the city. 10 min."},
+ {n:7,cat:"shop",name:"CLET Studio",lat:43.7645212,lng:11.2608504,note:"Via dell'Olmo 8r. The street-sign artist's workshop. Stickers €1. Closed Tuesdays. 2 min."},
+ {n:8,cat:"eat",name:"Osteria Antica Mescita San Niccolò",lat:43.7643653,lng:11.2612688,note:"12.00–14.30, 19.00–22.30. ~€25–35. Wild boar, peposo, a crypt dining room. 055 234 2836."},
+ {n:9,cat:"eat",name:"Hosteria del Bricco",lat:43.7645342,lng:11.2635777,note:"Sat 19.00–23.00, closed Mon. ~€30–40. Twenty covers under Gothic arches. Book. 055 234 5037."},
+ {n:10,cat:"eat",name:"Principe della Carne",lat:43.7640881,lng:11.2621988,note:"11.00–23.30, no break. ~€25–35. Steaks and pasta. The no-plan fallback."},
+ {n:11,cat:"eat",name:"Osteria di Rocco",lat:43.7649969,lng:11.2589107,note:"11.00–23.30. ~€25–30. By the park on Via dei Renai. Osso buco, outdoor tables, crayons."},
+ {n:12,cat:"gelato",name:"Il Gelato di Filo",lat:43.7641043,lng:11.2614491,note:"12.00–23.00 daily. €3–5. At the foot of the ramps. Mandarin and basil-strawberry."},
+ {n:13,cat:"drink",name:"Rifrullo",lat:43.7641771,lng:11.2615872,note:"07.30–01.30. Breakfast through to cocktails, garden terrace out the back."},
+ {n:14,cat:"drink",name:"The Joshua Tree Pub",lat:43.7642186,lng:11.2612687,note:"11.00–02.00 Sat. Craft beer and Guinness, thirty seconds from the door."},
+ {n:15,cat:"drink",name:"Empireo rooftop",lat:43.7666919,lng:11.2632799,note:"12.00–23.00. Aperitivo ~€25. Plaza Hotel Lucchesi's roof, 8 min over Ponte alle Grazie."},
+ {n:16,cat:"eat",name:"Principe del Mare",lat:43.7642747,lng:11.2616222,note:"11.00–24.00. ~€30–40. Seafood, for when nobody wants another plate of beef."},
+ {n:17,cat:"shop",name:"Museo Galileo",lat:43.7677337,lng:11.2559032,note:"09.30–18.00, Tue to 13.00. ~€14. Galileo's telescopes — and his middle finger in a glass egg. 12 min."}
+];
+
+var active = new Set(Object.keys(CATS));
+var map, markers = {}, started = false;
+
+function gmaps(p){ return "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng; }
+
+function buildFilters(){
+  var box = document.getElementById("filters");
+  if (!box || box.children.length) return;
+  Object.keys(CATS).forEach(function(k){
+    var b = document.createElement("button");
+    b.type = "button"; b.dataset.cat = k; b.setAttribute("aria-pressed","true");
+    b.innerHTML = '<span class="sw" style="background:' + CATS[k].color + '"></span>' + CATS[k].label;
+    b.addEventListener("click", function(){
+      if (active.has(k) && active.size === Object.keys(CATS).length) active = new Set([k]);
+      else if (active.has(k)) { active.delete(k); if (!active.size) active = new Set(Object.keys(CATS)); }
+      else active.add(k);
+      sync();
+    });
+    box.appendChild(b);
+  });
+}
+
+function buildList(){
+  var ol = document.getElementById("places");
+  if (!ol || ol.children.length) return;
+  PLACES.forEach(function(p){
+    var li = document.createElement("li");
+    li.dataset.cat = p.cat;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = '<span class="n" style="background:' + CATS[p.cat].color + '">' + p.n + '</span>' +
+      '<span><span class="nm">' + p.name + '</span><span class="dt">' + p.note + '</span></span>';
+    b.addEventListener("click", function(){
+      if (map && markers[p.n]) {
+        map.setView([p.lat, p.lng], 18, {animate:true});
+        markers[p.n].openPopup();
+        document.getElementById("map").scrollIntoView({behavior:"smooth", block:"center"});
+      } else {
+        window.open(gmaps(p), "_blank", "noopener");
+      }
+    });
+    li.appendChild(b);
+    ol.appendChild(li);
+  });
+}
+
+function sync(){
+  document.querySelectorAll("#filters button[data-cat]").forEach(function(b){
+    b.setAttribute("aria-pressed", active.has(b.dataset.cat) ? "true" : "false");
+  });
+  var shown = 0;
+  PLACES.forEach(function(p){
+    if (active.has(p.cat)) { shown++; if (map && markers[p.n]) markers[p.n].addTo(map); }
+    else if (map && markers[p.n]) map.removeLayer(markers[p.n]);
+  });
+  document.querySelectorAll("#places li").forEach(function(li){
+    li.classList.toggle("hide", !active.has(li.dataset.cat));
+  });
+  var c = document.getElementById("count");
+  if (c) c.textContent = shown + " of " + PLACES.length + " places shown";
+}
+
+function initMap(){
+  if (started) { if (map) setTimeout(function(){ map.invalidateSize(); }, 120); return; }
+  started = true;
+  buildFilters(); buildList();
+
+  if (typeof L === "undefined") { document.getElementById("tilewarn").classList.add("on"); sync(); return; }
+
+  map = L.map("map", {scrollWheelZoom:false}).setView([43.7638, 11.2612], 16);
+  var tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors", maxZoom: 19
+  });
+  var failed = 0;
+  tiles.on("tileerror", function(){
+    if (++failed > 2) document.getElementById("tilewarn").classList.add("on");
+  });
+  tiles.addTo(map);
+
+  PLACES.forEach(function(p){
+    var icon = L.divIcon({className:"", iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-12],
+      html:'<div style="width:20px;height:20px;border-radius:50%;background:' + CATS[p.cat].color +
+           ';border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);font:600 11px Inter,sans-serif;' +
+           'color:#fff;text-align:center;line-height:20px">' + p.n + '</div>'});
+    var m = L.marker([p.lat, p.lng], {icon:icon});
+    m.bindPopup('<b>' + p.name + '</b><br>' + p.note +
+      '<br><a href="' + gmaps(p) + '" target="_blank" rel="noopener">Directions &rarr;</a>');
+    markers[p.n] = m;
+  });
+
+  sync();
+  var g = L.featureGroup(Object.keys(markers).map(function(k){ return markers[k]; }));
+  map.fitBounds(g.getBounds().pad(0.12));
+  setTimeout(function(){ map.invalidateSize(); }, 250);
+}
+
+window.__initLiveMap = initMap;
+})();
+</script>
+</body>
+</html>
